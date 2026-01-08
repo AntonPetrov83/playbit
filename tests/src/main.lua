@@ -9,16 +9,18 @@ playdate.graphics.setFont(font)
 playbit.graphics.setColors({1,1,1,1}, {0,0,0,1})
 !end
 
-function doImagesMatch(dataA, dataB)
+function getImageDifference(dataA, dataB)
   -- assume both images are playdate sized i.e. 400x240 pixels
+  local difference = 0
+  local total = 400 * 240
   for x = 0, 399 do
     for y = 0, 239 do
       if dataA:getPixel(x, y) ~= dataB:getPixel(x, y) then
-        return false
+        difference = difference + 1
       end
     end
   end
-  return true
+  return difference / total
 end
 
 function playdate.update()
@@ -37,10 +39,13 @@ function playdate.update()
       love.graphics.setCanvas()
       local actualData = playbit.graphics.canvas:newImageData()
       local expectedData = love.image.newImageData("images/expected/"..testName..".png")
-      if not doImagesMatch(expectedData, actualData) then
-        print(testName.."=fail")
+      local difference = getImageDifference(expectedData, actualData)
+      -- allow some difference due due to Love2d different drawing algorithms
+      local maxDiff = 0.01
+      if difference > maxDiff then 
+        print(testName.."=fail ("..tostring(difference)..")")
       else
-        print(testName.."=pass")
+        print(testName.."=pass ("..tostring(difference)..")")
       end
       love.filesystem.createDirectory("images/actual")
       actualData:encode("png", "images/actual/"..testName..".png")
