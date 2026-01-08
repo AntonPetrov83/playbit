@@ -21,5 +21,6 @@ build.build({
     { "fonts/", "fonts" },
     { "tests/src/images/", "images/" },
     { "tests/src/main.lua", "main.lua" },
+    { "tests/src/suites", "suites/" },
   },
 })

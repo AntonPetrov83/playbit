@@ -20,25 +20,33 @@ function doImagesMatch(dataA, dataB)
   return true
 end
 
-function test_drawText()
-  playdate.graphics.clear(1)
-  playdate.graphics.drawText("HELLO WORLD", 0, 0)
-end
-
 function playdate.update()
-  test_drawText()
+  local paths = playdate.file.listFiles("suites")
+  for i=1, #paths do
+    local path = paths[i]
+    -- strip the extension
+    path = string.sub(path, 1, #path - 4)
+    local tests = playdate.file.load("suites/"..path)()
+    for j=1, #tests do
+      local test = tests[j]
+      local testName = path.."_"..test[1]
+      test[2]()
 
 !if LOVE2D then
-  love.graphics.setCanvas()
-  local screenData = playbit.graphics.canvas:newImageData()
-  local fileData = love.image.newImageData("images/test_draw.png")
-  if not doImagesMatch(fileData, screenData) then
-    print("images do not match")
-  end
+      love.graphics.setCanvas()
+      local screenData = playbit.graphics.canvas:newImageData()
+      local fileData = love.image.newImageData("images/"..testName..".png")
+      if not doImagesMatch(fileData, screenData) then
+        print(testName.."=fail")
+      else
+        print(testName.."=pass")
+      end
 !else
-  local image = playdate.graphics.getWorkingImage()
-  playdate.simulator.writeToFile(image, "tests/src/images/test_draw.png")
+      local image = playdate.graphics.getWorkingImage()
+      playdate.simulator.writeToFile(image, "tests/src/images/"..testName..".png")
 !end
+    end
+  end
   
 !if LOVE2D then
   love.event.quit()

@@ -17,6 +17,7 @@ build.build({
     -- project
     { "fonts/", "fonts" },
     { "tests/src/main.lua", "main.lua" },
+    { "tests/src/suites", "suites/" },
     { "tests/src/metadata.json", "pdxinfo",
       {
         json = { build.pdxinfoProcessor, { incrementBuildNumber = false } }
