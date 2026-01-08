@@ -44,6 +44,7 @@ function playdate.update()
       end
       love.filesystem.createDirectory("images/actual")
       actualData:encode("png", "images/actual/"..testName..".png")
+      love.graphics.setCanvas(playbit.graphics.canvas)
 !else
       local image = playdate.graphics.getWorkingImage()
       playdate.simulator.writeToFile(image, "tests/src/images/expected/"..testName..".png")
