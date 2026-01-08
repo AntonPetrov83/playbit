@@ -1,4 +1,5 @@
 @@"header.lua"
+import("CoreLibs/graphics")
 
 local font = playdate.graphics.font.new("fonts/Phozon/Phozon")
 playdate.graphics.setFont(font)
