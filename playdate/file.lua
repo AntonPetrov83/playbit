@@ -136,10 +136,6 @@ function module.rename(path, newPath)
   error("[ERR] playdate.file.rename() is not yet implemented.")
 end
 
-function module.load(path, env)
-  error("[ERR] playdate.file.load() is not yet implemented.")
-end
-
 function module.run(path, env)
   error("[ERR] playdate.file.run() is not yet implemented.")
 end
