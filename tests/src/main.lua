@@ -34,16 +34,18 @@ function playdate.update()
 
 !if LOVE2D then
       love.graphics.setCanvas()
-      local screenData = playbit.graphics.canvas:newImageData()
-      local fileData = love.image.newImageData("images/"..testName..".png")
-      if not doImagesMatch(fileData, screenData) then
+      local actualData = playbit.graphics.canvas:newImageData()
+      local expectedData = love.image.newImageData("images/expected/"..testName..".png")
+      if not doImagesMatch(expectedData, actualData) then
         print(testName.."=fail")
       else
         print(testName.."=pass")
       end
+      love.filesystem.createDirectory("images/actual")
+      actualData:encode("png", "images/actual/"..testName..".png")
 !else
       local image = playdate.graphics.getWorkingImage()
-      playdate.simulator.writeToFile(image, "tests/src/images/"..testName..".png")
+      playdate.simulator.writeToFile(image, "tests/src/images/expected/"..testName..".png")
 !end
     end
   end
