@@ -1,4 +1,6 @@
 _dist/*
-_test/*
-.vscode/*
-_tests/*
+_tests_love2d/*
+_tests_pdx/*
+_tests.pdx/*
+tests/src/images/*
+.sentry-native/*

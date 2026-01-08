@@ -4,7 +4,7 @@ build.build({
   assert = true,
   debug = true,
   platform = "love2d",
-  output = "_tests",
+  output = "_tests_love2d",
   clearBuildFolder = true,
   fileProcessors = {
     lua = build.luaProcessor,
@@ -18,8 +18,8 @@ build.build({
     { "playdate", "playdate" },
     { "json/json.lua", "json/json.lua" },
     -- project
-    { "tests/src/tests", "tests" },
-    { "tests/src/fonts", "fonts" },
+    { "fonts/", "fonts" },
+    { "tests/src/images/", "images/" },
     { "tests/src/main.lua", "main.lua" },
   },
 })
