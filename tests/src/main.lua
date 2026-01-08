@@ -58,6 +58,7 @@ function playdate.update()
   end
   
 !if LOVE2D then
+  print("Actual images saved to: "..love.filesystem.getSaveDirectory())
   love.event.quit()
 !else
   playdate.simulator.exit()
