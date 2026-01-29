@@ -56,10 +56,12 @@ function meta:draw(x, y, sourceRect)
   for i = 1, self._length do
     local j = i - 1
     local tile = self._tiles[i]
-    -- TODO: fix - overwriting the parameter values x, y
-    local x = math.floor(j % self._width) * frameHeight
-    local y = math.floor(j / self._width) * frameWidth
-    love.graphics.draw(self._imagetable._images[tile].data, x, y)
+    if tile > 0 then
+      -- TODO: fix - overwriting the parameter values x, y
+      local x = math.floor(j % self._width) * frameHeight
+      local y = math.floor(j / self._width) * frameWidth
+      love.graphics.draw(self._imagetable._images[tile].data, x, y)
+    end
   end
 
   love.graphics.setColor(r, g, b, 1)
