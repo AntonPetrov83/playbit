@@ -34,7 +34,7 @@ function meta:setTileAtPosition(x, y, index)
 end
 
 function meta:getTileAtPosition(x, y)
-  local index = x * y
+  local index = (y - 1) * self._width + x
   if index > #self._tiles then
     return 0
   end
