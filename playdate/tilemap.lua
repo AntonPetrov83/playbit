@@ -48,8 +48,6 @@ function meta:getTileAtPosition(x, y)
 end
 
 function meta:draw(x, y, sourceRect)
-  @@ASSERT(x == nil, "[ERR] Parameter x is not yet implemented.")
-  @@ASSERT(y == nil, "[ERR] Parameter y is not yet implemented.")
   @@ASSERT(sourceRect == nil, "[ERR] Parameter sourceRect is not yet implemented.")
 
   -- always render pure white so its not tinted
@@ -62,10 +60,10 @@ function meta:draw(x, y, sourceRect)
   local draw = love.graphics.draw
   local images = self._imagetable._images
   local index = 1
-  local sy = 0
+  local sy = y
 
   for j = 1, self._height do
-    local sx = 0
+    local sx = x
     for i = 1, self._width do
       local tile = self._tiles[index]
       if tile > 0 then
