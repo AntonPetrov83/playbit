@@ -29,8 +29,11 @@ function meta:setSize(width, height)
   self._tiles = {}
 end
 
-function meta:setTileAtPosition(x, y, index)
-  self._tiles[x][y] = index -- index into the tilemap's imagetable
+function meta:setTileAtPosition(x, y, tile)
+  if x >= 1 and x <= self._width and y >= 1 and y <= self._height then
+    local index = (y - 1) * self._width + x
+    self._tiles[index] = tile -- index into the tilemap's imagetable
+  end
 end
 
 function meta:getTileAtPosition(x, y)
