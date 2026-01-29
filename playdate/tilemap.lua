@@ -74,6 +74,7 @@ end
 
 function meta:setTiles(data, width)
   self._width = width
+  self._height = math.floor(#data / width)
   self._length = width * self._height
   self._tiles = data
 end
