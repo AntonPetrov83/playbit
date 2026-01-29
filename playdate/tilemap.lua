@@ -94,11 +94,11 @@ function meta:drawIgnoringOffset(x, y, sourceRect)
 end
 
 function meta:getSize()
-  error("[ERR] playdate.graphics.tilemap:getSize() is not yet implemented.")
+  return self._width, self._height
 end
 
 function meta:getPixelSize()
-  error("[ERR] playdate.graphics.tilemap:getPixelSize() is not yet implemented.")
+  return self._width * self._imagetable._frameWidth, self._height * self._imagetable._frameHeight
 end
 
 function meta:getCollisionRects(emptyIDs)
