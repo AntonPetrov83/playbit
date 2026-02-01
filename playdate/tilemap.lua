@@ -59,6 +59,7 @@ function meta:draw(x, y, sourceRect)
 
   local draw = love.graphics.draw
   local images = self._imagetable._images
+  local imagesCount = #images
   local tiles = self._tiles
   local index = 1
   local sy = y
@@ -67,7 +68,7 @@ function meta:draw(x, y, sourceRect)
     local sx = x
     for i = 1, self._width do
       local tile = tiles[index]
-      if tile and tile > 0 then
+      if tile and tile > 0 and tile <= imagesCount then
         draw(images[tile].data, sx, sy)
       end
       sx = sx + frameWidth
