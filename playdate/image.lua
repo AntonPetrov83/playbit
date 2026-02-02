@@ -28,11 +28,22 @@ function meta:load(path)
 end
 
 function meta:copy()
-  error("[ERR] playdate.graphics.image:copy() is not yet implemented.")
+  local img = setmetatable({}, meta)
+  img.data = self.data
+  img.sx = self.sx
+  img.sy = self.sy
+  return img
 end
 
 function meta:getSize()
-  return self.data:getWidth(), self.data:getHeight()
+  local w, h = self.data:getWidth(), self.data:getHeight()
+
+  if self.sx then
+    w = math.floor(w * self.sx)
+    h = math.floor(h * self.sy)
+  end
+
+  return w, h
 end
 
 function module.imageSizeAtPath(path)
@@ -142,7 +153,15 @@ function meta:drawScaled(x, y, scale, yscale)
 end
 
 function meta:scaledImage(scale, yscale)
-  error("[ERR] playdate.graphics.image:scaledImage() is not yet implemented.")
+  local img = self:copy()
+
+  local sx = img.sx or 1
+  local sy = img.sy or 1
+
+  img.sx = sx * scale
+  img.sy = sy * (yscale or scale)
+
+  return img
 end
 
 
