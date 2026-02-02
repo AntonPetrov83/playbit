@@ -19,7 +19,8 @@ function import(path)
 end
 
 local firstFrame = true
-local windowWidth, windowHeight = playbit.graphics.getWindowSize()
+local windowWidth, windowHeight = love.graphics.getWidth(), love.graphics.getHeight()
+playbit.graphics.setWindowSize(windowWidth, windowHeight)
 
 playbit.graphics.canvas:setFilter("nearest", "nearest")
 
