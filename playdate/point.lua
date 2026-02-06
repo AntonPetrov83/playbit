@@ -27,6 +27,10 @@ meta.__concat = function(a, b)
   return playdate.geometry.lineSegment.new(a.x, a.y, b.x, b.y)
 end
 
+meta.__tostring = function(p)
+  return string.format("(%s, %s)", p.x, p.y)
+end
+
 module.__index = meta
 
 function module.new(x, y)

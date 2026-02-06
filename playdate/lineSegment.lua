@@ -1,3 +1,5 @@
+require("playbit.util")
+
 local module = {}
 playdate.geometry.lineSegment = module
 
@@ -53,16 +55,12 @@ end
 
 function meta:pointOnLine(distance, extend)
   local len = self:length()
-  local d = distance / len
 
-  if not extend or extend ~= true then
-    if d < 0 then
-      d = 0
-    elseif d > 1 then
-      d = 1
-    end
+  if not extend then
+    distance = playbit.util.clamp(distance, 0, len)
   end
 
+  local d = distance / len
   local x = self.x1 + (self.x2 - self.x1) * d
   local y = self.y1 + (self.y2 - self.y1) * d
 

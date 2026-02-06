@@ -209,6 +209,8 @@ function meta:transformPolygon(p)
     local j = i + 1
     pts[i], pts[j] = transform(self, pts[i], pts[j])
   end
+  -- reset cached length
+  p._length = nil
 end
 
 function meta:transformedPolygon(p)
