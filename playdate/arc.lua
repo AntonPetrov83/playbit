@@ -72,8 +72,8 @@ function meta:pointOnArc(distance, extend)
   end
 
   -- on PD angle 0 is Up.
-  local x =  self.radius * math.sin(angleRad)
-  local y = -self.radius * math.cos(angleRad)
+  local x = self.x + self.radius * math.sin(angleRad)
+  local y = self.y - self.radius * math.cos(angleRad)
 
   return playdate.geometry.point.new(x, y)
 end
