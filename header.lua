@@ -35,6 +35,8 @@ math.randomseed(os.time())
 local font = playdate.graphics.font.new("fonts/Phozon/Phozon")
 playdate.graphics.setFont(font)
 
+local updateCoroutine
+
 function love.draw()
   -- must be changed at start of frame when canvas is not active
   local newCanvasWidth, newCanvasHeight = playbit.graphics.getCanvasSize()
@@ -86,7 +88,14 @@ function love.draw()
   love.graphics.translate(playbit.graphics.drawOffset.x, playbit.graphics.drawOffset.y)
 
   -- main update
-  playdate.update()
+  if not updateCoroutine or coroutine.status(updateCoroutine) == "dead" then
+    updateCoroutine = coroutine.create(playdate.update)
+  end
+
+  local ok, err = coroutine.resume(updateCoroutine)
+  if not ok then
+    error(err)
+  end
 
   -- debug draw
   if playdate.debugDraw then
