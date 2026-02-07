@@ -1,34 +1,23 @@
 local bit = require("bit")  -- LuaJIT's bitwise operations
 
+require("playdate.object")
+
 local module = {}
+playdate.graphics.sprite = module
 
 module.kCollisionTypeSlide = "slide"
 module.kCollisionTypeFreeze = "freeze"
 module.kCollisionTypeOverlap = "overlap"
 module.kCollisionTypeBounce = "bounce"
 
-playdate.graphics.sprite = module
-
 local meta = {}
 meta.__index = meta
 module.__index = meta
-
 
 local allSprites = {}
 
 function module.new(imageOrTilemap)
     local sprite = setmetatable({}, meta)
-
-    local hasSpr = sprite == nil and 'no sprite' or 'has sprite'
-
-    print("sprite " .. hasSpr)
-    -- printTable(sprite)
-
-    local hasImg = imageOrTilemap == nil and 'no image' or 'has image'
-
-    
-    print("imageOrTilemap " .. hasImg)
-    -- printTable(imageOrTilemap)
 
     if imageOrTilemap then
         sprite:setImage(imageOrTilemap)
@@ -39,6 +28,7 @@ function module.new(imageOrTilemap)
     sprite.zIndex = 0
     sprite.collideRect = nil
     sprite.animator = nil
+    sprite.updatesEnabled = true
 
     sprite:setCenter(0.5, 0.5)
 
@@ -49,19 +39,46 @@ function module.new(imageOrTilemap)
     return sprite
 end
 
-function module.performOnallSprites(func)
+function module.getAllSprites(func)
+    return { unpack(allSprites) }
+end
+
+function module.performOnAllSprites(func)
     for i = 1, #allSprites do
         func(allSprites[i])
     end
+end
+
+function module.spriteCount(func)
+    return #allSprites
+end
+
+function module.removeAll()
+    error("ERR not implemented yet")
+end
+
+function module.removeSprites(spritesArray)
+    error("ERR not implemented yet")
 end
 
 function module.spriteWithText(text, maxWidth, maxHeight, backgroundColor, leadingAdjustment, truncationString, alignment, font)
 	error("spriteWithText not implemented!")
 end
 
-function meta:setImage(image)
+function meta:setImage(image, flip, scale, yscale)
+    assert(not flip)
+    assert(not scale)
+    assert(not yscale)
+
+    if self.image == image then
+        return
+    end
+
     self.image = image
-    self.width, self.height = image:getSize()
+
+    if self.image then
+        self.width, self.height = self.image:getSize()
+    end
 end
 
 function meta:getImage()
@@ -74,6 +91,22 @@ end
 
 function meta:getSize()
     return self.width, self.height
+end
+
+function meta:setBounds(x, y, width, height)
+    if y == nil then
+        self.x, self.y, self.width, self.height = x:unpack()
+    else
+        self.x, self.y, self.width, self.height = x, y, width, height
+    end
+end
+
+function meta:getBounds()
+    return self.x, self.y, self.width, self.height
+end
+
+function meta:getBoundsRect()
+    return playdate.geometry.rect.new(self.x, self.y, self.width, self.height)
 end
 
 function meta:moveTo(x, y)
@@ -96,6 +129,7 @@ function meta:add()
     end
 end
 
+-- TODO: Removing during update() can cause problems.
 function meta:remove()
     for i, sprite in ipairs(allSprites) do
         if sprite == self then
@@ -106,6 +140,7 @@ function meta:remove()
     end
 end
 
+-- TODO: Use dirty flag to sort once per frame.
 function meta:setZIndex(index)
     self.zIndex = index
     table.sort(allSprites, function(a, b) return a.zIndex < b.zIndex end)
@@ -124,6 +159,19 @@ function meta:getCollideRect()
 end
 
 function meta:getCollideBounds()
+end
+
+function meta:clearCollideRect()
+    self.collideRect = nil
+end
+
+function meta:overlappingSprites()
+    -- TODO
+end
+
+function module.allOverlappingSprites()
+    -- TODO
+    return {}
 end
 
 function meta:setCollisionResponse(response)
@@ -273,7 +321,7 @@ function meta:checkCollisions(goalX, goalY)
 
     -- already overlapping another sprite?
     for _, other in ipairs(allSprites) do
-        if other ~= self and checkAABBCollision(self, other) then
+        if other ~= self and other.collideRect and checkAABBCollision(self, other) then
             overlaps = true
             break
         end
@@ -281,7 +329,7 @@ function meta:checkCollisions(goalX, goalY)
 
     -- Check for possible future collisions
     for _, other in ipairs(allSprites) do
-        if other ~= self then
+        if other ~= self and other.collideRect then
 
             local tImpact, nx, ny = sweptAABB(self, other, self.x, self.y, goalX, goalY)
 
@@ -309,7 +357,7 @@ end
 
 -- function meta:moveWithCollisions(goalX, goalY)
 --     local actualX, actualY, collisions, count = self:checkCollisions(goalX, goalY)
-    
+
 --     -- Move only if there were no collisions
 --     if count == 0 or self.collisionResponse == "overlap" then
 --         self:moveTo(actualX, actualY)
@@ -387,8 +435,16 @@ function meta:getRotation()
     return self.angle
 end
 
+function meta:setUpdatesEnabled(flag)
+    self.updatesEnabled = flag
+end
+
+function meta:updatesEnabled()
+    return self.updatesEnabled
+end
+
 function meta:setVisible(flag)
-    self.visible = flage
+    self.visible = flag
 end
 
 function meta:isVisible()
@@ -408,9 +464,23 @@ function meta:getCenterPoint()
     return self.x - self.width * self.centerX, self.y - self.height * self.centerY
 end
 
-function meta:draw()
-    if self.visible and self.image then
+function meta:setAnimator(animator, moveWithCollisions, removeOnCollision)
+    -- assert(not moveWithCollisions, "[ERR] moveWithCollisions parameter is not yet implemented.")
+    -- assert(not removeOnCollision, "[ERR] removeOnCollision parameter is not yet implemented.")
 
+    self.animator = animator
+end
+
+function meta:removeAnimator()
+    self.animator = nil
+end
+
+function meta:markDirty()
+    -- does nothing in LÖVE
+end
+
+function meta:draw()
+    if self.image then
         -- if self.scaleX then
         --     self.image:drawScaled(self.x, self.y, self.scaleX, self.scaleY)
         -- elseif self.angle then
@@ -420,19 +490,18 @@ function meta:draw()
         -- end
         local r, g, b = love.graphics.getColor()
         love.graphics.setColor(1, 1, 1, 1)
-        
+
         -- love.graphics.push()
             love.graphics.draw(self.image.data,
-                self.x, self.y,
+                0, 0,
                 self.angle,
                 self.scaleX, self.scaleY,
                 self.width * self.centerX, self.height * self.centerY
             )
-        -- love.graphics.pop()        
+        -- love.graphics.pop()
 
-        love.graphics.setColor(r, g, b, 1)        
-        playdate.graphics._updateContext()
-
+        love.graphics.setColor(r, g, b, 1)
+        playbit.graphics.updateContext()
     end
 end
 
@@ -446,13 +515,29 @@ function module.updateAll()
                 spr.animator = nil
             end
         end
+
+        if spr.update and spr.updatesEnabled then
+            spr:update()
+        end
     end
 end
 
 function module.drawAll()
     for _, spr in ipairs(allSprites) do
-        spr:draw()
+        if spr.visible then
+            love.graphics.push()
+            love.graphics.translate(spr.x, spr.y)
+            if spr.draw then
+                spr:draw(0, 0, spr.width, spr.height)
+            end
+            love.graphics.pop()
+        end
     end
+end
+
+function module.update()
+    module.updateAll()
+    module.drawAll()
 end
 
 function module.setBackgroundDrawingCallback(callback)
@@ -464,5 +549,12 @@ function module.drawBackground()
         module.backgroundCallback()
     end
 end
+
+-- Allow sprite to be inheritable.
+module.className = "Sprite"
+module.super = Object
+module.baseObject = module.new
+setmetatable(module, meta)
+setmetatable(meta, Object)
 
 return module
