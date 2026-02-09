@@ -100,9 +100,11 @@ function love.draw()
 
   -- debug draw
   if playdate.debugDraw then
-    playbit.graphics.shader:send("debugDraw", true)
+    local shader = love.graphics.getShader()
+    love.graphics.setShader(playbit.graphics.shaders.color)
+    playbit.graphics.shaders.color:send("drawColor", playbit.graphics.debugDrawColor)
     playdate.debugDraw()
-    playbit.graphics.shader:send("debugDraw", false)
+    love.graphics.setShader(shader)
   end
 
   -- pop main transform for draw offset

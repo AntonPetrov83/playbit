@@ -528,6 +528,10 @@ function module.drawFPS(x, y)
   -- not implemented yet, but do not produce errors
 end
 
+function module.setDebugDrawColor(r, g, b, a)
+  playbit.graphics.debugDrawColor = { r, g, b, a }
+end
+
 -- ██╗     ██╗   ██╗ █████╗
 -- ██║     ██║   ██║██╔══██╗
 -- ██║     ██║   ██║███████║
