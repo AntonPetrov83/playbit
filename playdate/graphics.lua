@@ -1,6 +1,8 @@
 local module = {}
 playdate.graphics = module
 
+local gfx = playbit.graphics
+
 require("playdate.font")
 require("playdate.image")
 require("playdate.imagetable")
@@ -43,24 +45,24 @@ kTextAlignment = {
 }
 
 function module.setDrawOffset(x, y)
-  playbit.graphics.drawOffset.x = x
-  playbit.graphics.drawOffset.y = y
+  gfx.drawOffset.x = x
+  gfx.drawOffset.y = y
   love.graphics.pop()
   love.graphics.push()
   love.graphics.translate(x, y)
 end
 
 function module.getDrawOffset()
-  return playbit.graphics.drawOffset.x, playbit.graphics.drawOffset.y
+  return gfx.drawOffset.x, gfx.drawOffset.y
 end
 
 function module.setBackgroundColor(color)
   @@ASSERT(color == 1 or color == 0, "Only values of 0 (black) or 1 (white) are supported.")
-  playbit.graphics.backgroundColorIndex = color
+  gfx.backgroundColorIndex = color
   if color == 1 then
-    playbit.graphics.backgroundColor = playbit.graphics.colorWhite
+    gfx.backgroundColor = gfx.colorWhite
   else
-    playbit.graphics.backgroundColor = playbit.graphics.colorBlack
+    gfx.backgroundColor = gfx.colorBlack
   end
   -- don't actually set love's bg color here since doing so immediately sets the color, and this is not consistent with PD
 end
@@ -71,17 +73,17 @@ end
 
 function module.setColor(color)
   @@ASSERT(color == 1 or color == 0, "Only values of 0 (black) or 1 (white) are supported.")
-  playbit.graphics.drawColorIndex = color
+  gfx.drawColorIndex = color
   -- when drawing without a pattern, we must flip the pattern mask for white/black because of the way the shader draws patterns
   if color == 1 then
-    local c = playbit.graphics.colorWhite
-    playbit.graphics.drawColor = c
+    local c = gfx.colorWhite
+    gfx.drawColor = c
     -- reset pattern, as per PD behavior
     module.setPattern({0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff})
     love.graphics.setColor(c[1], c[2], c[3], c[4])
   else
-    local c = playbit.graphics.colorBlack
-    playbit.graphics.drawColor = c
+    local c = gfx.colorBlack
+    gfx.drawColor = c
     -- reset pattern, as per PD behavior
     module.setPattern({0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
     love.graphics.setColor(c[1], c[2], c[3], c[4])
@@ -93,7 +95,7 @@ function module.getColor()
 end
 
 function module.setPattern(pattern)
-  playbit.graphics.drawPattern = pattern
+  gfx.drawPattern = pattern
 
   -- bitshifting does not work in shaders, so do it here in Lua
   local pixels = {}
@@ -108,7 +110,7 @@ function module.setPattern(pattern)
     end
   end
 
-  playbit.graphics.shader:send("pattern", unpack(pixels))
+  gfx.shader:send("pattern", unpack(pixels))
 end
 
 function module.setDitherPattern(alpha, ditherType)
@@ -117,37 +119,37 @@ end
 
 function module.clear(color)
   if not color then
-    local c = playbit.graphics.backgroundColor
+    local c = gfx.backgroundColor
     love.graphics.clear(c[1], c[2], c[3], c[4])
-    playbit.graphics.lastClearColor = c
+    gfx.lastClearColor = c
   else
     @@ASSERT(color == 1 or color == 0, "Only values of 0 (black) or 1 (white) are supported.")
     if color == 1 then
-      local c = playbit.graphics.colorWhite
+      local c = gfx.colorWhite
       love.graphics.clear(c[1], c[2], c[3], c[4])
-      playbit.graphics.lastClearColor = c
+      gfx.lastClearColor = c
     else
-      local c = playbit.graphics.colorBlack
+      local c = gfx.colorBlack
       love.graphics.clear(c[1], c[2], c[3], c[4])
-      playbit.graphics.lastClearColor = c
+      gfx.lastClearColor = c
     end
   end
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 end
 
 -- "copy", "inverted", "XOR", "NXOR", "whiteTransparent", "blackTransparent", "fillWhite", or "fillBlack".
 function module.setImageDrawMode(mode)
-  playbit.graphics.drawMode = mode
+  gfx.drawMode = mode
   if mode == module.kDrawModeCopy or mode == "copy" then
-    playbit.graphics.shader:send("mode", 0)
+    gfx.shader:send("mode", 0)
   elseif mode == module.kDrawModeFillWhite or mode == "fillWhite" then
-    playbit.graphics.shader:send("mode", 1)
+    gfx.shader:send("mode", 1)
   elseif mode == module.kDrawModeFillBlack or mode == "fillBlack" then
-    playbit.graphics.shader:send("mode", 2)
+    gfx.shader:send("mode", 2)
   elseif mode == module.kDrawModeInverted or mode == "inverted" then
-    playbit.graphics.shader:send("mode", 6)
+    gfx.shader:send("mode", 6)
   elseif mode == module.kDrawModeWhiteTransparent or mode == "whiteTransparent" then
-    playbit.graphics.shader:send("mode", 4)
+    gfx.shader:send("mode", 4)
   else
     error("[ERR] Draw mode '"..mode.."' is not yet implemented.")
   end
@@ -158,7 +160,7 @@ function module.getImageDrawMode()
 end
 
 function module.drawCircleAtPoint(x, y, radius)
-  playbit.graphics.shader:send("mode", 8)
+  gfx.shader:send("mode", 8)
 
   if type(x) ~= "number" then
     local pt = x
@@ -167,13 +169,13 @@ function module.drawCircleAtPoint(x, y, radius)
   end
 
   love.graphics.circle("line", x, y, radius)
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 
-  module.setImageDrawMode(playbit.graphics.drawMode)
+  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.fillCircleAtPoint(x, y, radius)
-  playbit.graphics.shader:send("mode", 8)
+  gfx.shader:send("mode", 8)
 
   if type(x) ~= "number" then
     local pt = x
@@ -182,9 +184,9 @@ function module.fillCircleAtPoint(x, y, radius)
   end
 
   love.graphics.circle("fill", x, y, radius)
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 
-  module.setImageDrawMode(playbit.graphics.drawMode)
+  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.drawEllipseInRect(x, y, width, height, startAngle, endAngle)
@@ -230,7 +232,7 @@ function module.setLineCapStyle(style)
 end
 
 function module.drawRect(x, y, width, height)
-  playbit.graphics.shader:send("mode", 8)
+  gfx.shader:send("mode", 8)
 
   if type(x) ~= "number" then
     local r = x
@@ -238,13 +240,13 @@ function module.drawRect(x, y, width, height)
   end
 
   love.graphics.rectangle("line", x, y, width, height)
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 
-  module.setImageDrawMode(playbit.graphics.drawMode)
+  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.fillRect(x, y, width, height)
-  playbit.graphics.shader:send("mode", 8)
+  gfx.shader:send("mode", 8)
 
   if type(x) ~= "number" then
     local r = x
@@ -252,35 +254,35 @@ function module.fillRect(x, y, width, height)
   end
 
   love.graphics.rectangle("fill", x, y, width, height)
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 
-  module.setImageDrawMode(playbit.graphics.drawMode)
+  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.drawRoundRect(x, y, width, height, radius)
   -- TODO: love's rectangle function doesn't draw the same way as Playdate's
-  -- playbit.graphics.shader:send("mode", 8)
+  -- gfx.shader:send("mode", 8)
 
   -- love.graphics.rectangle("line", x, y, width, height, radius, radius, 0)
-  -- playbit.graphics.updateContext()
+  -- gfx.updateContext()
 
-  -- module.setImageDrawMode(playbit.graphics.drawMode)
+  -- module.setImageDrawMode(gfx.drawMode)
   error("[ERR] playdate.graphics.drawRoundRect() is not yet implemented.")
 end
 
 function module.fillRoundRect(x, y, width, height, radius)
   -- TODO: love's rectangle function doesn't draw the same way as Playdate's
-  -- playbit.graphics.shader:send("mode", 8)
+  -- gfx.shader:send("mode", 8)
 
   -- love.graphics.rectangle("fill", x, y, width, height, radius, radius, 0)
-  -- playbit.graphics.updateContext()
+  -- gfx.updateContext()
 
-  -- module.setImageDrawMode(playbit.graphics.drawMode)
+  -- module.setImageDrawMode(gfx.drawMode)
   error("[ERR] playdate.graphics.fillRoundRect() is not yet implemented.")
 end
 
 function module.drawLine(x1, y1, x2, y2)
-  playbit.graphics.shader:send("mode", 8)
+  gfx.shader:send("mode", 8)
 
   if type(x) ~= "number" then
     local ls = x1
@@ -288,13 +290,13 @@ function module.drawLine(x1, y1, x2, y2)
   end
 
   love.graphics.line(x1, y1, x2, y2)
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 
-  module.setImageDrawMode(playbit.graphics.drawMode)
+  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.drawPolygon(x1, y1, x2, y2, ...)
-  playbit.graphics.shader:send("mode", 8)
+  gfx.shader:send("mode", 8)
 
   if type(x) ~= "number" then
     local poly = x1
@@ -307,8 +309,8 @@ function module.drawPolygon(x1, y1, x2, y2, ...)
     love.graphics.polygon("line", x1, y1, x2, y2, ...)
   end
 
-  playbit.graphics.updateContext()
-  module.setImageDrawMode(playbit.graphics.drawMode)
+  gfx.updateContext()
+  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.drawArc(x, y, radius, startAngle, endAngle)
@@ -322,7 +324,7 @@ function module.drawArc(x, y, radius, startAngle, endAngle)
     x, y, radius, startAngle, endAngle = arc.x, arc.y, arc.radius, arc.startAngle, arc.endAngle
   end
 
-  playbit.graphics.shader:send("mode", 8)
+  gfx.shader:send("mode", 8)
 
   -- Bring angles to interval [0, 360)
   startAngle = normalizeAngle(startAngle)
@@ -339,18 +341,18 @@ function module.drawArc(x, y, radius, startAngle, endAngle)
 
   love.graphics.arc("line", "open", x, y, radius, math.rad(startAngle), math.rad(endAngle), 32)
 
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 
-  module.setImageDrawMode(playbit.graphics.drawMode)
+  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.drawPixel(x, y)
-  playbit.graphics.shader:send("mode", 8)
+  gfx.shader:send("mode", 8)
 
   love.graphics.points(x, y)
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 
-  module.setImageDrawMode(playbit.graphics.drawMode)
+  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.perlin(x, y, z, rep, octaves, persistence)
@@ -432,12 +434,12 @@ function module.getWorkingImage()
 end
 
 function module.setFont(font)
-  playbit.graphics.activeFont = font
+  gfx.activeFont = font
   love.graphics.setFont(font.data)
 end
 
 function module.getFont()
-  return playbit.graphics.activeFont
+  return gfx.activeFont
 end
 
 function module.setFontFamily(fontFamily)
@@ -460,7 +462,7 @@ function module.getTextSize(str, fontFamily, leadingAdjustment)
   @@ASSERT(fontFamily == nil, "[ERR] Parameter fontFamily is not yet implemented.")
   @@ASSERT(leadingAdjustment == nil, "[ERR] Parameter leadingAdjustment is not yet implemented.")
 
-  local font = playbit.graphics.activeFont
+  local font = gfx.activeFont
   return font:getWidth(str), font:getHeight()
 end
 
@@ -474,7 +476,7 @@ function module.drawTextInRect(text, x, ...)
     error("[ERR] Support for the rect parameter is not yet implemented.")
   end
 
-  font = font or playbit.graphics.activeFont
+  font = font or gfx.activeFont
 
   return font:_drawTextInRect(text, x, y, width, height, leadingAdjustment, truncationString, textAlignment)
 end
@@ -487,9 +489,9 @@ function module.drawText(text, x, y, width, height, fontFamily, leadingAdjustmen
   @@ASSERT(alignment == nil, "[ERR] Parameter alignment is not yet implemented.")
 
   @@ASSERT(text ~= nil, "Text is nil")
-  local font = playbit.graphics.activeFont
+  local font = gfx.activeFont
   font:drawText(text, x, y, fontFamily, leadingAdjustment)
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 end
 
 -- TODO: handle the overloaded signature (key, rect, language, leadingAdjustment)
@@ -536,22 +538,22 @@ function module.pushContext(image)
   end
 
   -- push context
-  table.insert(playbit.graphics.contextStack, image)
+  table.insert(gfx.contextStack, image)
 
   -- update current render target
   love.graphics.setCanvas(image._canvas)
 end
 
 function module.popContext()
-  @@ASSERT(#playbit.graphics.contextStack > 0, "No pushed context.")
+  @@ASSERT(#gfx.contextStack > 0, "No pushed context.")
 
   -- pop context
-  table.remove(playbit.graphics.contextStack)
+  table.remove(gfx.contextStack)
   -- update current render target
-  if #playbit.graphics.contextStack == 0 then
-    love.graphics.setCanvas(playbit.graphics.canvas)
+  if #gfx.contextStack == 0 then
+    love.graphics.setCanvas(gfx.canvas)
   else
-    local activeContext = playbit.graphics.contextStack[#playbit.graphics.contextStack]
+    local activeContext = gfx.contextStack[#gfx.contextStack]
     love.graphics.setCanvas(activeContext._canvas)
   end
 end
