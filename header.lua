@@ -69,7 +69,6 @@ function love.draw()
 
   -- render to canvas to allow 2x scaling
   love.graphics.setCanvas(playbit.graphics.canvas)
-  love.graphics.setShader(playbit.graphics.shader)
 
   --[[ 
     Love2d won't allow a canvas to be set outside of the draw function, so we need to do this on the first frame of draw.
@@ -113,13 +112,17 @@ function love.draw()
   -- pop canvas
   love.graphics.setCanvas()
 
-  -- clear shader so that canvas is rendered normally
-  love.graphics.setShader()
+  -- set shader for the final composition
+  local shader = love.graphics.getShader()
+  love.graphics.setShader(playbit.graphics.shaders.final)
 
   -- draw canvas to screen
   local currentCanvasScale = playbit.graphics.getCanvasScale()
   local x, y = playbit.graphics.getCanvasPosition()
   love.graphics.draw(playbit.graphics.canvas, x, y, 0, currentCanvasScale, currentCanvasScale)
+
+  -- reset back the shader
+  love.graphics.setShader(shader)
 
   -- update emulated input
   playdate.updateInput()
