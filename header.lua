@@ -1,7 +1,7 @@
 !if LOVE2D then
 require("playbit.graphics")
 
---[[ since there is no CoreLibs/playdate, this file should always 
+--[[ since there is no CoreLibs/playdate, this file should always
 be included here so the methods are always available ]]--
 require("playdate.playdate")
 --[[ not really a way around including this one, but probably doesn't really
@@ -70,13 +70,12 @@ function love.draw()
   -- render to canvas to allow 2x scaling
   love.graphics.setCanvas(playbit.graphics.canvas)
 
-  --[[ 
+  --[[
     Love2d won't allow a canvas to be set outside of the draw function, so we need to do this on the first frame of draw.
     Otherwise setting the bg color outside of playdate.update() won't be consistent with PD.
   --]]
   if firstFrame then
-    local c = playbit.graphics.lastClearColor
-    love.graphics.clear(c.r, c.g, c.b, 1)
+    playbit.graphics.clear(playbit.graphics.lastClearColor)
     firstFrame = false
   end
 

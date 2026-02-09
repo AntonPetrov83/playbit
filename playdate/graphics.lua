@@ -25,6 +25,7 @@ module.kImageFlippedXY = 3
 
 module.kColorWhite = 1
 module.kColorBlack = 0
+module.kColorClear = 2
 -- TODO: clear and XOR support
 
 module.kStrokeCentered = 0
@@ -44,6 +45,17 @@ kTextAlignment = {
 	center = 2,
 }
 
+local textToDrawMode = {
+  ["copy"] = module.kDrawModeCopy,
+  ["inverted"] = module.kDrawModeInverted,
+  ["xor"] = module.kDrawModeXOR,
+  ["nxor"] = module.kDrawModeNXOR,
+  ["whitetransparent"] = module.kDrawModeWhiteTransparent,
+  ["blacktransparent"] = module.kDrawModeBlackTransparent,
+  ["fillwhite"] = module.kDrawModeFillWhite,
+  ["fillblack"] = module.kDrawModeFillBlack
+}
+
 function module.setDrawOffset(x, y)
   gfx.drawOffset.x = x
   gfx.drawOffset.y = y
@@ -58,12 +70,7 @@ end
 
 function module.setBackgroundColor(color)
   @@ASSERT(color == 1 or color == 0, "Only values of 0 (black) or 1 (white) are supported.")
-  gfx.backgroundColorIndex = color
-  if color == 1 then
-    gfx.backgroundColor = gfx.colorWhite
-  else
-    gfx.backgroundColor = gfx.colorBlack
-  end
+  gfx.backgroundColor = color
   -- don't actually set love's bg color here since doing so immediately sets the color, and this is not consistent with PD
 end
 
@@ -73,21 +80,7 @@ end
 
 function module.setColor(color)
   @@ASSERT(color == 1 or color == 0, "Only values of 0 (black) or 1 (white) are supported.")
-  gfx.drawColorIndex = color
-  -- when drawing without a pattern, we must flip the pattern mask for white/black because of the way the shader draws patterns
-  if color == 1 then
-    local c = gfx.colorWhite
-    gfx.drawColor = c
-    -- reset pattern, as per PD behavior
-    module.setPattern({0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff})
-    love.graphics.setColor(c[1], c[2], c[3], c[4])
-  else
-    local c = gfx.colorBlack
-    gfx.drawColor = c
-    -- reset pattern, as per PD behavior
-    module.setPattern({0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    love.graphics.setColor(c[1], c[2], c[3], c[4])
-  end
+  gfx.setDrawColor(color)
 end
 
 function module.getColor()
@@ -95,22 +88,7 @@ function module.getColor()
 end
 
 function module.setPattern(pattern)
-  gfx.drawPattern = pattern
-
-  -- bitshifting does not work in shaders, so do it here in Lua
-  local pixels = {}
-  for i = 1, 8 do
-    for j = 7, 0, -1 do
-      local b = bit.lshift(1, j)
-      if bit.band(pattern[i], b) == b then
-        table.insert(pixels, 1)
-      else
-        table.insert(pixels, 0)
-      end
-    end
-  end
-
-  gfx.shader:send("pattern", unpack(pixels))
+  gfx.setPattern(pattern)
 end
 
 function module.setDitherPattern(alpha, ditherType)
@@ -119,40 +97,22 @@ end
 
 function module.clear(color)
   if not color then
-    local c = gfx.backgroundColor
-    love.graphics.clear(c[1], c[2], c[3], c[4])
-    gfx.lastClearColor = c
+    gfx.lastClearColor = gfx.backgroundColor
   else
     @@ASSERT(color == 1 or color == 0, "Only values of 0 (black) or 1 (white) are supported.")
-    if color == 1 then
-      local c = gfx.colorWhite
-      love.graphics.clear(c[1], c[2], c[3], c[4])
-      gfx.lastClearColor = c
-    else
-      local c = gfx.colorBlack
-      love.graphics.clear(c[1], c[2], c[3], c[4])
-      gfx.lastClearColor = c
-    end
+    gfx.lastClearColor = color
   end
+
+  gfx.clear(gfx.lastClearColor)
   gfx.updateContext()
 end
 
--- "copy", "inverted", "XOR", "NXOR", "whiteTransparent", "blackTransparent", "fillWhite", or "fillBlack".
 function module.setImageDrawMode(mode)
-  gfx.drawMode = mode
-  if mode == module.kDrawModeCopy or mode == "copy" then
-    gfx.shader:send("mode", 0)
-  elseif mode == module.kDrawModeFillWhite or mode == "fillWhite" then
-    gfx.shader:send("mode", 1)
-  elseif mode == module.kDrawModeFillBlack or mode == "fillBlack" then
-    gfx.shader:send("mode", 2)
-  elseif mode == module.kDrawModeInverted or mode == "inverted" then
-    gfx.shader:send("mode", 6)
-  elseif mode == module.kDrawModeWhiteTransparent or mode == "whiteTransparent" then
-    gfx.shader:send("mode", 4)
-  else
-    error("[ERR] Draw mode '"..mode.."' is not yet implemented.")
+  if type(mode) == "string" then
+    mode = textToDrawMode[string.lower(mode)]
   end
+
+  gfx.setImageDrawMode(mode)
 end
 
 function module.getImageDrawMode()
