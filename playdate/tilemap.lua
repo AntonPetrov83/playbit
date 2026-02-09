@@ -2,6 +2,8 @@
 local module = {}
 playdate.graphics.tilemap = module
 
+local gfx = playdate.graphics
+
 local meta = {}
 meta.__index = meta
 module.__index = meta
@@ -60,6 +62,8 @@ function meta:draw(x, y, sourceRect)
   local index = 1
   local sy = y
 
+  gfx.setDrawMode(gfx.IMAGE)
+
   for j = 1, self._height do
     local sx = x
     for i = 1, self._width do
@@ -73,7 +77,7 @@ function meta:draw(x, y, sourceRect)
     sy = sy + frameHeight
   end
 
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 end
 
 function meta:getTiles()

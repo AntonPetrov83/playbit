@@ -5,6 +5,8 @@ require("playdate.object")
 local module = {}
 playdate.graphics.sprite = module
 
+local gfx = playbit.graphics
+
 module.kCollisionTypeSlide = "slide"
 module.kCollisionTypeFreeze = "freeze"
 module.kCollisionTypeOverlap = "overlap"
@@ -489,6 +491,8 @@ function meta:draw()
         --     self.image:draw(self.x, self.y)
         -- end
 
+        gfx.setDrawMode(gfx.IMAGE)
+
         -- love.graphics.push()
             love.graphics.draw(self.image.data,
                 0, 0,
@@ -498,7 +502,7 @@ function meta:draw()
             )
         -- love.graphics.pop()
 
-        playbit.graphics.updateContext()
+        gfx.updateContext()
     end
 end
 

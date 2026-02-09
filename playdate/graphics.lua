@@ -160,7 +160,7 @@ function module.getImageDrawMode()
 end
 
 function module.drawCircleAtPoint(x, y, radius)
-  gfx.shader:send("mode", 8)
+  gfx.setDrawMode(gfx.LINE)
 
   if type(x) ~= "number" then
     local pt = x
@@ -170,12 +170,10 @@ function module.drawCircleAtPoint(x, y, radius)
 
   love.graphics.circle("line", x, y, radius)
   gfx.updateContext()
-
-  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.fillCircleAtPoint(x, y, radius)
-  gfx.shader:send("mode", 8)
+  gfx.setDrawMode(gfx.FILL)
 
   if type(x) ~= "number" then
     local pt = x
@@ -185,8 +183,6 @@ function module.fillCircleAtPoint(x, y, radius)
 
   love.graphics.circle("fill", x, y, radius)
   gfx.updateContext()
-
-  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.drawEllipseInRect(x, y, width, height, startAngle, endAngle)
@@ -232,7 +228,7 @@ function module.setLineCapStyle(style)
 end
 
 function module.drawRect(x, y, width, height)
-  gfx.shader:send("mode", 8)
+  gfx.setDrawMode(gfx.LINE)
 
   if type(x) ~= "number" then
     local r = x
@@ -241,12 +237,10 @@ function module.drawRect(x, y, width, height)
 
   love.graphics.rectangle("line", x, y, width, height)
   gfx.updateContext()
-
-  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.fillRect(x, y, width, height)
-  gfx.shader:send("mode", 8)
+  gfx.setDrawMode(gfx.FILL)
 
   if type(x) ~= "number" then
     local r = x
@@ -255,13 +249,11 @@ function module.fillRect(x, y, width, height)
 
   love.graphics.rectangle("fill", x, y, width, height)
   gfx.updateContext()
-
-  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.drawRoundRect(x, y, width, height, radius)
   -- TODO: love's rectangle function doesn't draw the same way as Playdate's
-  -- gfx.shader:send("mode", 8)
+  -- gfx.setDrawMode(gfx.LINE)
 
   -- love.graphics.rectangle("line", x, y, width, height, radius, radius, 0)
   -- gfx.updateContext()
@@ -272,7 +264,7 @@ end
 
 function module.fillRoundRect(x, y, width, height, radius)
   -- TODO: love's rectangle function doesn't draw the same way as Playdate's
-  -- gfx.shader:send("mode", 8)
+  -- gfx.setDrawMode(gfx.FILL)
 
   -- love.graphics.rectangle("fill", x, y, width, height, radius, radius, 0)
   -- gfx.updateContext()
@@ -282,7 +274,7 @@ function module.fillRoundRect(x, y, width, height, radius)
 end
 
 function module.drawLine(x1, y1, x2, y2)
-  gfx.shader:send("mode", 8)
+  gfx.setDrawMode(gfx.LINE)
 
   if type(x) ~= "number" then
     local ls = x1
@@ -291,12 +283,10 @@ function module.drawLine(x1, y1, x2, y2)
 
   love.graphics.line(x1, y1, x2, y2)
   gfx.updateContext()
-
-  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.drawPolygon(x1, y1, x2, y2, ...)
-  gfx.shader:send("mode", 8)
+  gfx.setDrawMode(gfx.LINE)
 
   if type(x) ~= "number" then
     local poly = x1
@@ -310,7 +300,6 @@ function module.drawPolygon(x1, y1, x2, y2, ...)
   end
 
   gfx.updateContext()
-  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.drawArc(x, y, radius, startAngle, endAngle)
@@ -324,7 +313,7 @@ function module.drawArc(x, y, radius, startAngle, endAngle)
     x, y, radius, startAngle, endAngle = arc.x, arc.y, arc.radius, arc.startAngle, arc.endAngle
   end
 
-  gfx.shader:send("mode", 8)
+  gfx.setDrawMode(gfx.LINE)
 
   -- Bring angles to interval [0, 360)
   startAngle = normalizeAngle(startAngle)
@@ -340,19 +329,14 @@ function module.drawArc(x, y, radius, startAngle, endAngle)
   endAngle = endAngle - 90
 
   love.graphics.arc("line", "open", x, y, radius, math.rad(startAngle), math.rad(endAngle), 32)
-
   gfx.updateContext()
-
-  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.drawPixel(x, y)
-  gfx.shader:send("mode", 8)
+  gfx.setDrawMode(gfx.LINE)
 
   love.graphics.points(x, y)
   gfx.updateContext()
-
-  module.setImageDrawMode(gfx.drawMode)
 end
 
 function module.perlin(x, y, z, rep, octaves, persistence)

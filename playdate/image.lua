@@ -3,6 +3,8 @@
 local module = {}
 playdate.graphics.image = module
 
+local gfx = playbit.graphics
+
 local meta = {}
 meta.__index = meta
 module.__index = meta
@@ -78,6 +80,8 @@ function meta:draw(x, y, flip, qx, qy, qw, qh)
     end
   end
 
+  gfx.setDrawMode(gfx.IMAGE)
+
   if qx and qy and qw and qh then
     local w, h = self:getSize()
     playbit.graphics.quad:setViewport(qx, qy, qw, qh, w, h)
@@ -90,7 +94,7 @@ function meta:draw(x, y, flip, qx, qy, qw, qh)
     love.graphics.draw(self.data, x, y, 0, sx, sy)
   end
 
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 end
 
 function meta:drawAnchored(x, y, ax, ay, flip)
@@ -124,9 +128,11 @@ function meta:drawRotated(x, y, angle, scale, yscale)
   local sx = self.sx or 1
   local sy = self.sy or 1
 
+  gfx.setDrawMode(gfx.IMAGE)
+
   love.graphics.draw(self.data, x, y, math.rad(angle), sx, sy, w, h)
 
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 end
 
 function meta:rotatedImage(angle, scale, yscale)
@@ -142,9 +148,11 @@ function meta:drawScaled(x, y, scale, yscale)
   sx = sx * scale
   sy = sy * (yscale or scale)
 
+  gfx.setDrawMode(gfx.IMAGE)
+
   love.graphics.draw(self.data, x, y, 0, sx, sy)
 
-  playbit.graphics.updateContext()
+  gfx.updateContext()
 end
 
 function meta:scaledImage(scale, yscale)
