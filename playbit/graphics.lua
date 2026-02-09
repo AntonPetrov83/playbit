@@ -41,7 +41,7 @@ module.backgroundColor = 0
 module.activeFont = {}
 module.lineWidth = 1
 module.lastClearColor = 1
-module.drawPattern = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+module.drawPattern = nil
 
 -- shared quad to reduce gc
 module.quad = love.graphics.newQuad(0, 0, 1, 1, 1, 1)
@@ -159,7 +159,7 @@ end
 
 --- Sets the current drawing color for primitives.
 function module.setDrawColor(color)
-  module.usePattern = false
+  module.drawPattern = nil
   module.drawColor = color
   local c = colorByIndex[color]
   module.shaders.color:send("drawColor", c)
@@ -182,7 +182,7 @@ end
 
 --- Sets the 8x8 pattern used for drawing of primitives.
 function module.setPattern(pattern)
-  module.usePattern = true
+  assert(type(pattern) == "table" and #pattern == 8)
   module.drawPattern = pattern
   local pixels = unpackPattern(pattern)
   module.shaders.pattern:send("pattern", unpack(pixels))
@@ -222,7 +222,7 @@ local function getShader(mode)
   end
 
   if mode == module.FILL then
-    if module.usePattern then
+    if module.drawPattern then
       return module.shaders.pattern
     else
       return module.shaders.color
@@ -252,7 +252,6 @@ function module.setDrawMode(mode)
 end
 
 function module.pushContext(image)
-
   -- save current context
   local context = {
     imageDrawMode = module.imageDrawMode,
@@ -311,8 +310,10 @@ function module.popContext()
   -- restore pattern
   if module.drawPattern ~= context.drawPattern then
     module.drawPattern = context.drawPattern
-    local pixels = unpackPattern(module.drawPattern)
-    module.shaders.pattern:send("pattern", unpack(pixels))
+    if module.drawPattern then
+      local pixels = unpackPattern(module.drawPattern)
+      module.shaders.pattern:send("pattern", unpack(pixels))
+    end
   end
 
   -- restore line width
