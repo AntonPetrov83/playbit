@@ -33,19 +33,22 @@ end
 module.shaders.final:send("white", module.colorWhite)
 module.shaders.final:send("black", module.colorBlack)
 
+-- graphics state
 module.imageDrawMode = 0
 module.drawOffset = { x = 0, y = 0}
 module.drawColor = 1
 module.backgroundColor = 0
 module.activeFont = {}
+module.lineWidth = 1
+module.lastClearColor = 1
+module.drawPattern = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+
+-- shared quad to reduce gc
+module.quad = love.graphics.newQuad(0, 0, 1, 1, 1, 1)
+module.debugDrawColor = { 1, 0, 0, 0.5 }
 module.drawMode = -1
 module.canvas = love.graphics.newCanvas()
 module.contextStack = {}
--- shared quad to reduce gc
-module.quad = love.graphics.newQuad(0, 0, 1, 1, 1, 1)
-module.lastClearColor = 1
-module.drawPattern = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
-module.debugDrawColor = { 1, 0, 0, 0.5 }
 
 local canvasScale = 1
 local canvasWidth = 400
@@ -147,6 +150,13 @@ function module.clear(color)
   love.graphics.clear(c[1], c[2], c[3], c[4])
 end
 
+function module.setLineWidth(width)
+  -- PD examples use line width 0 but love2d does not support it.
+  if width < 1 then width = 1 end
+  module.lineWidth = width
+  love.graphics.setLineWidth(width)
+end
+
 --- Sets the current drawing color for primitives.
 function module.setDrawColor(color)
   module.usePattern = false
@@ -241,19 +251,99 @@ function module.setDrawMode(mode)
   end
 end
 
-function module.updateContext()
-  if #module.contextStack == 0 then
-    return
+function module.pushContext(image)
+
+  -- save current context
+  local context = {
+    imageDrawMode = module.imageDrawMode,
+    drawOffset = module.drawOffset,
+    drawColor = module.drawColor,
+    backgroundColor = module.backgroundColor,
+    activeFont = module.activeFont,
+    drawMode = module.drawMode,
+    canvas = module.canvas,
+    lastClearColor = module.lastClearColor,
+    drawPattern = module.drawPattern,
+    lineWidth = module.lineWidth
+  }
+
+  if image then
+    -- create canvas if it doesn't exist
+    if not image._canvas then
+      image._canvas = love.graphics.newCanvas(image:getSize())
+    end
+
+    -- update current render target
+    module.canvas = image._canvas
+    love.graphics.setCanvas(image._canvas)
   end
 
-  local activeContext = module.contextStack[#module.contextStack]
+  -- push context
+  table.insert(module.contextStack, context)
+end
 
-  -- love2d doesn't allow calling newImageData() when canvas is active
-  love.graphics.setCanvas()
-  local imageData = activeContext._canvas:newImageData()
-  love.graphics.setCanvas(activeContext._canvas)
+function module.popContext()
+  @@ASSERT(#module.contextStack > 0, "No pushed context.")
 
-  -- update image
-  activeContext.data:replacePixels(imageData)
+  -- pop context
+  local context = table.remove(module.contextStack)
+
+  module.imageDrawMode = context.imageDrawMode
+  module.backgroundColor = context.backgroundColor
+  module.lastClearColor = context.lastClearColor
+
+  -- restore canvas
+  module.canvas = context.canvas
+  love.graphics.setCanvas(module.canvas)
+
+  -- restore draw offset
+  module.drawOffset = context.drawOffset
+  love.graphics.origin()
+  love.graphics.translate(module.drawOffset.x, module.drawOffset.y)
+
+  -- restore draw color
+  if module.drawColor ~= context.drawColor then
+    module.drawColor = context.drawColor
+    local c = colorByIndex[module.drawColor]
+    module.shaders.color:send("drawColor", c)
+  end
+
+  -- restore pattern
+  if module.drawPattern ~= context.drawPattern then
+    module.drawPattern = context.drawPattern
+    local pixels = unpackPattern(module.drawPattern)
+    module.shaders.pattern:send("pattern", unpack(pixels))
+  end
+
+  -- restore line width
+  if module.lineWidth ~= context.lineWidth then
+    module.lineWidth = context.lineWidth
+    love.graphics.setLineWidth(module.lineWidth)
+  end
+
+  --restore active font
+  if module.activeFont ~= context.activeFont then
+    module.activeFont = context.activeFont
+    love.graphics.setFont(module.activeFont.data)
+  end
+
+  -- invalidate draw mode
+  module.drawMode = -1
+end
+
+function module.updateContext()
+  -- if #module.contextStack == 0 then
+  --   return
+  -- end
+
+  -- local activeContext = module.contextStack[#module.contextStack]
+
+  -- -- love2d doesn't allow calling newImageData() when canvas is active
+  -- love.graphics.setCanvas()
+  -- local imageData = activeContext._canvas:newImageData()
+  -- love.graphics.setCanvas(activeContext._canvas)
+
+  -- -- update image
+  -- activeContext.data:replacePixels(imageData)
 end
 !end

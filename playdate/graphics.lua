@@ -59,8 +59,7 @@ local textToDrawMode = {
 function module.setDrawOffset(x, y)
   gfx.drawOffset.x = x
   gfx.drawOffset.y = y
-  love.graphics.pop()
-  love.graphics.push()
+  love.graphics.origin()
   love.graphics.translate(x, y)
 end
 
@@ -174,13 +173,11 @@ function module.fillTriangle(x1, y1, x2, y2, x3, y3)
 end
 
 function module.setLineWidth(width)
-  -- PD examples use line width 0 but love2d does not support it.
-  if width < 1 then width = 1 end
-  love.graphics.setLineWidth(width)
+  gfx.setLineWidth(width)
 end
 
 function module.getLineWidth()
-  return love.graphics.getLineWidth()
+  return gfx.lineWidth
 end
 
 function module.setLineCapStyle(style)
@@ -473,31 +470,9 @@ function module.checkAlphaCollision(image1, x1, y1, flip1, image2, x2, y2, flip2
 end
 
 function module.pushContext(image)
-  -- TODO: PD docs say image is optional, but not passing an image just results in drawing to last context?
-  @@ASSERT(image, "Missing image parameter.")
-
-  -- create canvas if it doesn't exist
-  if not image._canvas then
-    image._canvas = love.graphics.newCanvas(image:getSize())
-  end
-
-  -- push context
-  table.insert(gfx.contextStack, image)
-
-  -- update current render target
-  love.graphics.setCanvas(image._canvas)
+  gfx.pushContext(image)
 end
 
 function module.popContext()
-  @@ASSERT(#gfx.contextStack > 0, "No pushed context.")
-
-  -- pop context
-  table.remove(gfx.contextStack)
-  -- update current render target
-  if #gfx.contextStack == 0 then
-    love.graphics.setCanvas(gfx.canvas)
-  else
-    local activeContext = gfx.contextStack[#gfx.contextStack]
-    love.graphics.setCanvas(activeContext._canvas)
-  end
+  gfx.popContext()
 end

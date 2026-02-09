@@ -83,7 +83,7 @@ function love.draw()
   love.graphics.setFont(playbit.graphics.activeFont.data)
 
   -- push main transform for draw offset
-  love.graphics.push()
+  love.graphics.origin()
   love.graphics.translate(playbit.graphics.drawOffset.x, playbit.graphics.drawOffset.y)
 
   -- main update
@@ -105,8 +105,8 @@ function love.draw()
     love.graphics.setShader(shader)
   end
 
-  -- pop main transform for draw offset
-  love.graphics.pop()
+  -- reset transform
+  love.graphics.origin()
 
   -- pop canvas
   love.graphics.setCanvas()
