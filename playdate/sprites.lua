@@ -481,32 +481,6 @@ function meta:markDirty()
     -- does nothing in LÖVE
 end
 
-function meta:draw()
-    if self.image then
-        -- if self.scaleX then
-        --     self.image:drawScaled(self.x, self.y, self.scaleX, self.scaleY)
-        -- elseif self.angle then
-        --     self.image:drawRotated(self.x, self.y, self.angle)
-        -- else
-        --     self.image:draw(self.x, self.y)
-        -- end
-
-        gfx.setDrawMode(gfx.IMAGE)
-
-        -- love.graphics.push()
-            love.graphics.draw(self.image.data,
-                0, 0,
-                self.angle,
-                self.scaleX, self.scaleY,
-                self.width * self.centerX, self.height * self.centerY
-            )
-        -- love.graphics.pop()
-
-        gfx.updateContext()
-    end
-end
-
-
 function module.updateAll()
     for _, spr in ipairs(allSprites) do
         if spr.animator then
@@ -526,12 +500,24 @@ end
 function module.drawAll()
     for _, spr in ipairs(allSprites) do
         if spr.visible then
-            love.graphics.push()
-            love.graphics.translate(spr.x, spr.y)
             if spr.draw then
+                love.graphics.push()
+                love.graphics.translate(spr.x, spr.y)
                 spr:draw(0, 0, spr.width, spr.height)
+                love.graphics.pop()
+
+            elseif spr.image then
+                gfx.setDrawMode(gfx.IMAGE)
+
+                love.graphics.draw(spr.image.data,
+                    spr.x, spr.y,
+                    spr.angle,
+                    spr.scaleX, spr.scaleY,
+                    spr.width * spr.centerX, spr.height * spr.centerY
+                )
+
+                gfx.updateContext()
             end
-            love.graphics.pop()
         end
     end
 end
