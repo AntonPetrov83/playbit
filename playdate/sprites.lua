@@ -488,8 +488,6 @@ function meta:draw()
         -- else
         --     self.image:draw(self.x, self.y)
         -- end
-        local r, g, b = love.graphics.getColor()
-        love.graphics.setColor(1, 1, 1, 1)
 
         -- love.graphics.push()
             love.graphics.draw(self.image.data,
@@ -500,7 +498,6 @@ function meta:draw()
             )
         -- love.graphics.pop()
 
-        love.graphics.setColor(r, g, b, 1)
         playbit.graphics.updateContext()
     end
 end
