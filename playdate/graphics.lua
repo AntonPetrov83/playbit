@@ -131,7 +131,6 @@ function module.clear(color)
     love.graphics.clear(c[1], c[2], c[3], c[4])
     playbit.graphics.lastClearColor = c
   end
-  playbit.graphics.updateContext()
 end
 
 -- "copy", "inverted", "XOR", "NXOR", "whiteTransparent", "blackTransparent", "fillWhite", or "fillBlack".
@@ -158,7 +157,6 @@ function module.drawCircleAtPoint(x, y, radius)
   end
 
   love.graphics.circle("line", x, y, radius)
-  playbit.graphics.updateContext()
 end
 
 function module.fillCircleAtPoint(x, y, radius)
@@ -171,7 +169,6 @@ function module.fillCircleAtPoint(x, y, radius)
   end
 
   love.graphics.circle("fill", x, y, radius)
-  playbit.graphics.updateContext()
 end
 
 function module.drawEllipseInRect(x, y, width, height, startAngle, endAngle)
@@ -226,7 +223,6 @@ function module.drawRect(x, y, width, height)
   end
 
   love.graphics.rectangle("line", x, y, width, height)
-  playbit.graphics.updateContext()
 end
 
 function module.fillRect(x, y, width, height)
@@ -238,7 +234,6 @@ function module.fillRect(x, y, width, height)
   end
 
   love.graphics.rectangle("fill", x, y, width, height)
-  playbit.graphics.updateContext()
 end
 
 function module.drawRoundRect(x, y, width, height, radius)
@@ -246,7 +241,6 @@ function module.drawRoundRect(x, y, width, height, radius)
   -- playbit.graphics.setDrawMode("line")
 
   -- love.graphics.rectangle("line", x, y, width, height, radius, radius, 0)
-  -- playbit.graphics.updateContext()
   error("[ERR] playdate.graphics.drawRoundRect() is not yet implemented.")
 end
 
@@ -255,7 +249,6 @@ function module.fillRoundRect(x, y, width, height, radius)
   --   playbit.graphics.setDrawMode("fill")
 
   -- love.graphics.rectangle("fill", x, y, width, height, radius, radius, 0)
-  -- playbit.graphics.updateContext()
   error("[ERR] playdate.graphics.fillRoundRect() is not yet implemented.")
 end
 
@@ -268,7 +261,6 @@ function module.drawLine(x1, y1, x2, y2)
   end
 
   love.graphics.line(x1, y1, x2, y2)
-  playbit.graphics.updateContext()
 end
 
 function module.drawPolygon(x1, y1, x2, y2, ...)
@@ -284,8 +276,6 @@ function module.drawPolygon(x1, y1, x2, y2, ...)
   else
     love.graphics.polygon("line", x1, y1, x2, y2, ...)
   end
-
-  playbit.graphics.updateContext()
 end
 
 function module.drawArc(x, y, radius, startAngle, endAngle)
@@ -315,15 +305,12 @@ function module.drawArc(x, y, radius, startAngle, endAngle)
   playbit.graphics.setDrawMode("line")
 
   love.graphics.arc("line", "open", x, y, radius, math.rad(startAngle), math.rad(endAngle), 32)
-
-  playbit.graphics.updateContext()
 end
 
 function module.drawPixel(x, y)
   playbit.graphics.setDrawMode("line")
 
   love.graphics.points(x, y)
-  playbit.graphics.updateContext()
 end
 
 function module.perlin(x, y, z, rep, octaves, persistence)
@@ -462,7 +449,6 @@ function module.drawText(text, x, y, width, height, fontFamily, leadingAdjustmen
   @@ASSERT(text ~= nil, "Text is nil")
   local font = playbit.graphics.activeFont
   font:drawText(text, x, y, fontFamily, leadingAdjustment)
-  playbit.graphics.updateContext()
 end
 
 -- TODO: handle the overloaded signature (key, rect, language, leadingAdjustment)

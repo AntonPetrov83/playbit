@@ -153,20 +153,4 @@ function module.setDrawMode(mode)
     love.graphics.setShader(shader)
   end
 end
-
-function module.updateContext()
-  if #module.contextStack == 0 then
-    return
-  end
-
-  local activeContext = module.contextStack[#module.contextStack]
-
-  -- love2d doesn't allow calling newImageData() when canvas is active
-  love.graphics.setCanvas()
-  local imageData = activeContext._canvas:newImageData()
-  love.graphics.setCanvas(activeContext._canvas)
-
-  -- update image
-  activeContext.data:replacePixels(imageData)
-end
 !end
