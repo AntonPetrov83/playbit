@@ -39,7 +39,8 @@ module.contextStack = {}
 -- shared quad to reduce gc
 module.quad = love.graphics.newQuad(0, 0, 1, 1, 1, 1)
 module.lastClearColor = module.colorWhite
-module.drawPattern = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+module.drawPattern = nil
+module.lineWidth = 1
 
 local canvasScale = 1
 local canvasWidth = 400
