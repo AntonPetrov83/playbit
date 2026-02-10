@@ -10,6 +10,21 @@ module.COLOR_BLACK = { 49 / 255, 47 / 255, 40 / 255, 1 }
 
 module.colorWhite = module.COLOR_WHITE
 module.colorBlack = module.COLOR_BLACK
+
+module.shaders =
+{
+  final   = love.graphics.newShader("playbit/shaders/final.glsl"),
+  color   = love.graphics.newShader("playbit/shaders/color.glsl"),
+  pattern = love.graphics.newShader("playbit/shaders/pattern.glsl"),
+  image   = { }
+}
+
+local shader = love.filesystem.read("playbit/shaders/image.glsl")
+for i = 0, 9 do
+  local src = "#define DRAW_MODE " .. i .. "\n" .. shader
+  module.shaders.image[i] = love.graphics.newShader(src)
+end
+
 module.shader = love.graphics.newShader("playdate/shader")
 module.drawOffset = { x = 0, y = 0}
 module.drawColorIndex = 1
