@@ -74,7 +74,7 @@ function module.setBackgroundColor(color)
 end
 
 function module.getBackgroundColor(color)
-  return playbit.graphics.backgroundColorIndex
+  return gfx.backgroundColor
 end
 
 function module.setColor(color)
@@ -83,7 +83,7 @@ function module.setColor(color)
 end
 
 function module.getColor()
-  return playbit.graphics.drawColorIndex
+  return gfx.drawColor
 end
 
 function module.setPattern(pattern)
@@ -115,7 +115,7 @@ function module.setImageDrawMode(mode)
 end
 
 function module.getImageDrawMode()
-  return playbit.graphics.drawMode
+  return gfx.imageDrawMode
 end
 
 function module.drawCircleAtPoint(x, y, radius)
