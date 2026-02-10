@@ -88,6 +88,9 @@ function module.setColor(color)
   local c = colorByIndex[color]
   playbit.graphics.drawColor = c
   playbit.graphics.shaders.color:send("drawColor", c)
+  -- color and pattern modes are mutually exclusive
+  playbit.graphics.drawPattern = nil
+  playbit.graphics.drawMode = nil
 end
 
 function module.getColor()
@@ -96,6 +99,7 @@ end
 
 function module.setPattern(pattern)
   playbit.graphics.drawPattern = pattern
+  playbit.graphics.drawMode = nil
 
   -- bitshifting does not work in shaders, so do it here in Lua
   local pixels = {}
@@ -132,28 +136,20 @@ end
 
 -- "copy", "inverted", "XOR", "NXOR", "whiteTransparent", "blackTransparent", "fillWhite", or "fillBlack".
 function module.setImageDrawMode(mode)
-  playbit.graphics.drawMode = mode
-  if mode == module.kDrawModeCopy or mode == "copy" then
-    playbit.graphics.shader:send("mode", 0)
-  elseif mode == module.kDrawModeFillWhite or mode == "fillWhite" then
-    playbit.graphics.shader:send("mode", 1)
-  elseif mode == module.kDrawModeFillBlack or mode == "fillBlack" then
-    playbit.graphics.shader:send("mode", 2)
-  elseif mode == module.kDrawModeInverted or mode == "inverted" then
-    playbit.graphics.shader:send("mode", 6)
-  elseif mode == module.kDrawModeWhiteTransparent or mode == "whiteTransparent" then
-    playbit.graphics.shader:send("mode", 4)
-  else
-    error("[ERR] Draw mode '"..mode.."' is not yet implemented.")
+  if type(mode) == "string" then
+    mode = textToDrawMode[string.lower(mode)]
   end
+
+  playbit.graphics.imageDrawMode = mode
+  playbit.graphics.drawMode = nil
 end
 
 function module.getImageDrawMode()
-  return playbit.graphics.drawMode
+  return playbit.graphics.imageDrawMode
 end
 
 function module.drawCircleAtPoint(x, y, radius)
-  playbit.graphics.shader:send("mode", 8)
+  playbit.graphics.setDrawMode("line")
 
   if type(x) ~= "number" then
     local pt = x
@@ -162,12 +158,10 @@ function module.drawCircleAtPoint(x, y, radius)
   end
 
   love.graphics.circle("line", x, y, radius)
-
-  module.setImageDrawMode(playbit.graphics.drawMode)
 end
 
 function module.fillCircleAtPoint(x, y, radius)
-  playbit.graphics.shader:send("mode", 8)
+  playbit.graphics.setDrawMode("fill")
 
   if type(x) ~= "number" then
     local pt = x
@@ -176,8 +170,6 @@ function module.fillCircleAtPoint(x, y, radius)
   end
 
   love.graphics.circle("fill", x, y, radius)
-
-  module.setImageDrawMode(playbit.graphics.drawMode)
 end
 
 function module.drawEllipseInRect(x, y, width, height, startAngle, endAngle)
@@ -224,7 +216,7 @@ function module.setLineCapStyle(style)
 end
 
 function module.drawRect(x, y, width, height)
-  playbit.graphics.shader:send("mode", 8)
+  playbit.graphics.setDrawMode("line")
 
   if type(x) ~= "number" then
     local r = x
@@ -232,12 +224,10 @@ function module.drawRect(x, y, width, height)
   end
 
   love.graphics.rectangle("line", x, y, width, height)
-
-  module.setImageDrawMode(playbit.graphics.drawMode)
 end
 
 function module.fillRect(x, y, width, height)
-  playbit.graphics.shader:send("mode", 8)
+  playbit.graphics.setDrawMode("fill")
 
   if type(x) ~= "number" then
     local r = x
@@ -245,32 +235,26 @@ function module.fillRect(x, y, width, height)
   end
 
   love.graphics.rectangle("fill", x, y, width, height)
-
-  module.setImageDrawMode(playbit.graphics.drawMode)
 end
 
 function module.drawRoundRect(x, y, width, height, radius)
   -- TODO: love's rectangle function doesn't draw the same way as Playdate's
-  -- playbit.graphics.shader:send("mode", 8)
+  -- playbit.graphics.setDrawMode("line")
 
   -- love.graphics.rectangle("line", x, y, width, height, radius, radius, 0)
-
-  -- module.setImageDrawMode(playbit.graphics.drawMode)
   error("[ERR] playdate.graphics.drawRoundRect() is not yet implemented.")
 end
 
 function module.fillRoundRect(x, y, width, height, radius)
   -- TODO: love's rectangle function doesn't draw the same way as Playdate's
-  -- playbit.graphics.shader:send("mode", 8)
+  --   playbit.graphics.setDrawMode("fill")
 
   -- love.graphics.rectangle("fill", x, y, width, height, radius, radius, 0)
-
-  -- module.setImageDrawMode(playbit.graphics.drawMode)
   error("[ERR] playdate.graphics.fillRoundRect() is not yet implemented.")
 end
 
 function module.drawLine(x1, y1, x2, y2)
-  playbit.graphics.shader:send("mode", 8)
+  playbit.graphics.setDrawMode("line")
 
   if type(x1) ~= "number" then
     local ls = x1
@@ -278,12 +262,10 @@ function module.drawLine(x1, y1, x2, y2)
   end
 
   love.graphics.line(x1, y1, x2, y2)
-
-  module.setImageDrawMode(playbit.graphics.drawMode)
 end
 
 function module.drawPolygon(x1, y1, x2, y2, ...)
-  playbit.graphics.shader:send("mode", 8)
+  playbit.graphics.setDrawMode("line")
 
   if type(x1) ~= "number" then
     local poly = x1
@@ -297,7 +279,6 @@ function module.drawPolygon(x1, y1, x2, y2, ...)
   end
 
   playbit.graphics.updateContext()
-  module.setImageDrawMode(playbit.graphics.drawMode)
 end
 
 function module.drawArc(x, y, radius, startAngle, endAngle)
@@ -310,8 +291,6 @@ function module.drawArc(x, y, radius, startAngle, endAngle)
     local arc = x
     x, y, radius, startAngle, endAngle = arc.x, arc.y, arc.radius, arc.startAngle, arc.endAngle
   end
-
-  playbit.graphics.shader:send("mode", 8)
 
   -- Bring angles to interval [0, 360)
   startAngle = normalizeAngle(startAngle)
@@ -326,20 +305,18 @@ function module.drawArc(x, y, radius, startAngle, endAngle)
   startAngle = startAngle - 90
   endAngle = endAngle - 90
 
+  playbit.graphics.setDrawMode("line")
+
   -- use smooth style in this case to better match PD
   love.graphics.setLineStyle("smooth")
   love.graphics.arc("line", "open", x, y, radius, math.rad(startAngle), math.rad(endAngle), 32)
   love.graphics.setLineStyle("rough")
-
-  module.setImageDrawMode(playbit.graphics.drawMode)
 end
 
 function module.drawPixel(x, y)
-  playbit.graphics.shader:send("mode", 8)
+  playbit.graphics.setDrawMode("line")
 
   love.graphics.points(x, y)
-
-  module.setImageDrawMode(playbit.graphics.drawMode)
 end
 
 function module.perlin(x, y, z, rep, octaves, persistence)

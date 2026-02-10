@@ -72,6 +72,8 @@ function meta:draw(x, y, flip, qx, qy, qw, qh)
     end
   end
 
+  playbit.graphics.setDrawMode("image")
+
   if type(qx) == "table" then
     error("[ERR] Passing a Rect table is not yet implemented.")
   elseif qx and qy and qw and qh then
@@ -119,6 +121,8 @@ function meta:drawRotated(x, y, angle, scale, yscale)
   local sx = self.sx or 1
   local sy = self.sy or 1
 
+  playbit.graphics.setDrawMode("image")
+
   love.graphics.draw(self.data, x, y, math.rad(angle), sx, sy, w, h)
 
 end
@@ -135,6 +139,8 @@ function meta:drawScaled(x, y, scale, yscale)
 
   sx = sx * scale
   sy = sy * (yscale or scale)
+
+  playbit.graphics.setDrawMode("image")
 
   love.graphics.draw(self.data, x, y, 0, sx, sy)
 
