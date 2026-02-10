@@ -129,6 +129,30 @@ function module.setColors(white, black)
   module.shaders.final:send("black", black)
 end
 
+local function copyAndSwapCanvases()
+  local shader = love.graphics.getShader()
+
+  -- create second canvas if needed of the same size.
+  if not module.canvas2 then
+    local w, h = module.canvas:getWidth(), module.canvas:getHeight()
+    module.canvas2 = love.graphics.newCanvas(w, h)
+  end
+
+  -- copy original canvas to another one
+  love.graphics.push()
+  love.graphics.origin()
+  love.graphics.setCanvas(module.canvas2)
+  love.graphics.setShader()
+  love.graphics.draw(module.canvas)
+  love.graphics.pop()
+
+  -- swap canvases.
+  module.canvas, module.canvas2 = module.canvas2, module.canvas
+
+  -- restore shader and the color
+  love.graphics.setShader(shader)
+end
+
 local function getShader(mode)
   if mode == "line" then
     return module.shaders.color
@@ -149,6 +173,11 @@ function module.setDrawMode(mode)
   if module.drawMode ~= mode then
     module.drawMode = mode
     local shader = getShader(mode)
+    -- TODO: we have to do this before every drawing call.
+    if shader:hasUniform("canvas") then
+      copyAndSwapCanvases()
+      shader:send("canvas", module.canvas2)
+    end
     love.graphics.setShader(shader)
   end
 end
