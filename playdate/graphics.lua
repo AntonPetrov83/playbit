@@ -41,6 +41,23 @@ kTextAlignment = {
 	center = 2,
 }
 
+local textToDrawMode = {
+  ["copy"] = module.kDrawModeCopy,
+  ["inverted"] = module.kDrawModeInverted,
+  ["xor"] = module.kDrawModeXOR,
+  ["nxor"] = module.kDrawModeNXOR,
+  ["whitetransparent"] = module.kDrawModeWhiteTransparent,
+  ["blacktransparent"] = module.kDrawModeBlackTransparent,
+  ["fillwhite"] = module.kDrawModeFillWhite,
+  ["fillblack"] = module.kDrawModeFillBlack
+}
+
+local colorByIndex = {
+  [0] = { 0, 0, 0, 1 },
+  [1] = { 1, 1, 1, 1 },
+  [2] = { 0, 0, 0, 0 }
+}
+
 function module.setDrawOffset(x, y)
   playbit.graphics.drawOffset.x = x
   playbit.graphics.drawOffset.y = y
@@ -56,11 +73,7 @@ end
 function module.setBackgroundColor(color)
   @@ASSERT(color == 1 or color == 0, "Only values of 0 (black) or 1 (white) are supported.")
   playbit.graphics.backgroundColorIndex = color
-  if color == 1 then
-    playbit.graphics.backgroundColor = playbit.graphics.colorWhite
-  else
-    playbit.graphics.backgroundColor = playbit.graphics.colorBlack
-  end
+  playbit.graphics.backgroundColor = colorByIndex[color]
   -- don't actually set love's bg color here since doing so immediately sets the color, and this is not consistent with PD
 end
 
@@ -71,20 +84,9 @@ end
 function module.setColor(color)
   @@ASSERT(color == 1 or color == 0, "Only values of 0 (black) or 1 (white) are supported.")
   playbit.graphics.drawColorIndex = color
-  -- when drawing without a pattern, we must flip the pattern mask for white/black because of the way the shader draws patterns
-  if color == 1 then
-    local c = playbit.graphics.colorWhite
-    playbit.graphics.drawColor = c
-    -- reset pattern, as per PD behavior
-    module.setPattern({0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff})
-    love.graphics.setColor(c[1], c[2], c[3], c[4])
-  else
-    local c = playbit.graphics.colorBlack
-    playbit.graphics.drawColor = c
-    -- reset pattern, as per PD behavior
-    module.setPattern({0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    love.graphics.setColor(c[1], c[2], c[3], c[4])
-  end
+  local c = colorByIndex[color]
+  playbit.graphics.drawColor = c
+  playbit.graphics.shaders.color:send("drawColor", c)
 end
 
 function module.getColor()
@@ -107,7 +109,7 @@ function module.setPattern(pattern)
     end
   end
 
-  playbit.graphics.shader:send("pattern", unpack(pixels))
+  playbit.graphics.shaders.pattern:send("pattern", unpack(pixels))
 end
 
 function module.setDitherPattern(alpha, ditherType)
@@ -121,15 +123,9 @@ function module.clear(color)
     playbit.graphics.lastClearColor = c
   else
     @@ASSERT(color == 1 or color == 0, "Only values of 0 (black) or 1 (white) are supported.")
-    if color == 1 then
-      local c = playbit.graphics.colorWhite
-      love.graphics.clear(c[1], c[2], c[3], c[4])
-      playbit.graphics.lastClearColor = c
-    else
-      local c = playbit.graphics.colorBlack
-      love.graphics.clear(c[1], c[2], c[3], c[4])
-      playbit.graphics.lastClearColor = c
-    end
+    local c = colorByIndex[color]
+    love.graphics.clear(c[1], c[2], c[3], c[4])
+    playbit.graphics.lastClearColor = c
   end
   playbit.graphics.updateContext()
 end

@@ -60,10 +60,6 @@ end
 -- (x, y, flip, sourceRect)
 -- (p, flip, sourceRect)
 function meta:draw(x, y, flip, qx, qy, qw, qh)
-  -- always render pure white so its not tinted
-  local r, g, b = love.graphics.getColor()
-  love.graphics.setColor(1, 1, 1, 1)
-
   local sx = 1
   local sy = 1
   if flip then
@@ -94,7 +90,6 @@ function meta:draw(x, y, flip, qx, qy, qw, qh)
     love.graphics.draw(self.data, x, y, 0, sx, sy)
   end
 
-  love.graphics.setColor(r, g, b, 1)
   playbit.graphics.updateContext()
 end
 
@@ -118,10 +113,6 @@ function meta:drawRotated(x, y, angle, scale, yscale)
   @@ASSERT(scale == nil, "[ERR] Parameter scale is not yet implemented.")
   @@ASSERT(yscale == nil, "[ERR] Parameter yscale is not yet implemented.")
 
-  -- always render pure white so its not tinted
-  local r, g, b = love.graphics.getColor()
-  love.graphics.setColor(1, 1, 1, 1)
-
   -- playdate.image.drawRotated() draws the texture centered, so emulate that
   local w = self.data:getWidth() * 0.5
   local h = self.data:getHeight() * 0.5
@@ -135,7 +126,6 @@ function meta:drawRotated(x, y, angle, scale, yscale)
 
   love.graphics.draw(self.data, x, y, math.rad(angle), sx, sy, w, h)
 
-  love.graphics.setColor(r, g, b, 1)
   playbit.graphics.updateContext()
 end
 
@@ -146,10 +136,6 @@ end
 function meta:drawScaled(x, y, scale, yscale)
   yscale = yscale or scale
 
-  -- always render pure white so its not tinted
-  local r, g, b = love.graphics.getColor()
-  love.graphics.setColor(1, 1, 1, 1)
-
   local sx = self.sx or 1
   local sy = self.sy or 1
 
@@ -158,7 +144,6 @@ function meta:drawScaled(x, y, scale, yscale)
 
   love.graphics.draw(self.data, x, y, 0, sx, sy)
 
-  love.graphics.setColor(r, g, b, 1)
   playbit.graphics.updateContext()
 end
 

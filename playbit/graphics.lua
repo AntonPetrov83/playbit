@@ -122,29 +122,10 @@ end
 ---@param white table An array of 4 values that correspond to RGBA that range from 0 to 1.
 ---@param black table An array of 4 values that correspond to RGBA that range from 0 to 1.
 function module.setColors(white, black)
-  if white == nil then
-    white = module.COLOR_WHITE
-  end
-  if black == nil then
-    black = module.COLOR_BLACK
-  end
-  
-  module.colorWhite = white
-  module.colorBlack = black
-  module.shader:send("white", white)
-  module.shader:send("black", black)
-
-  if module.backgroundColorIndex == 1 then
-    module.backgroundColor = module.colorWhite
-  else
-    module.backgroundColor = module.colorBlack
-  end
-
-  if module.drawColorIndex == 1 then
-    module.drawColor = module.colorWhite
-  else
-    module.drawColor = module.colorBlack
-  end
+  module.colorWhite = white or module.COLOR_WHITE
+  module.colorBlack = black or module.COLOR_BLACK
+  module.shaders.final:send("white", white)
+  module.shaders.final:send("black", black)
 end
 
 function module.updateContext()

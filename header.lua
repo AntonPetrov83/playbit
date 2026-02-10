@@ -1,7 +1,7 @@
 !if LOVE2D then
 require("playbit.graphics")
 
---[[ since there is no CoreLibs/playdate, this file should always 
+--[[ since there is no CoreLibs/playdate, this file should always
 be included here so the methods are always available ]]--
 require("playdate.playdate")
 --[[ not really a way around including this one, but probably doesn't really
@@ -70,7 +70,7 @@ function love.draw()
   love.graphics.setCanvas(playbit.graphics.canvas)
   love.graphics.setShader(playbit.graphics.shader)
 
-  --[[ 
+  --[[
     Love2d won't allow a canvas to be set outside of the draw function, so we need to do this on the first frame of draw.
     Otherwise setting the bg color outside of playdate.update() won't be consistent with PD.
   --]]
@@ -113,17 +113,10 @@ function love.draw()
   -- clear shader so that canvas is rendered normally
   love.graphics.setShader()
 
-  -- always render pure white so its not tinted
-  local r, g, b = love.graphics.getColor()
-  love.graphics.setColor(1, 1, 1, 1)
-
   -- draw canvas to screen
   local currentCanvasScale = playbit.graphics.getCanvasScale()
   local x, y = playbit.graphics.getCanvasPosition()
   love.graphics.draw(playbit.graphics.canvas, x, y, 0, currentCanvasScale, currentCanvasScale)
-
-  -- reset back to set color
-  love.graphics.setColor(r, g, b, 1)
 
   -- update emulated input
   playdate.updateInput()
