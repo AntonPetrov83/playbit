@@ -60,7 +60,7 @@ function love.draw()
       flags.y = 50
     end
 
-    love.window.setMode(newWindowWidth, newWindowHeight, flags)
+    love.window.updateMode(newWindowWidth, newWindowHeight, flags)
     windowWidth = newWindowWidth
     windowHeight = newWindowHeight
   end
