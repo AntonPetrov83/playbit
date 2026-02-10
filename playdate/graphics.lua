@@ -222,7 +222,7 @@ end
 function module.drawLine(x1, y1, x2, y2)
   playbit.graphics.shader:send("mode", 8)
 
-  if type(x) ~= "number" then
+  if type(x1) ~= "number" then
     local ls = x1
     x1, y1, x2, y2 = ls:unpack()
   end
@@ -236,7 +236,7 @@ end
 function module.drawPolygon(x1, y1, x2, y2, ...)
   playbit.graphics.shader:send("mode", 8)
 
-  if type(x) ~= "number" then
+  if type(x1) ~= "number" then
     local poly = x1
     if poly:isClosed() then
       love.graphics.polygon("line", unpack(poly._points))
