@@ -78,6 +78,8 @@ function meta:draw(x, y, flip, qx, qy, qw, qh)
     end
   end
 
+  playbit.graphics.setDrawMode("image")
+
   if qx and qy and qw and qh then
     local w, h = self:getSize()
     playbit.graphics.quad:setViewport(qx, qy, qw, qh, w, h)
@@ -124,6 +126,8 @@ function meta:drawRotated(x, y, angle, scale, yscale)
   local sx = self.sx or 1
   local sy = self.sy or 1
 
+  playbit.graphics.setDrawMode("image")
+
   love.graphics.draw(self.data, x, y, math.rad(angle), sx, sy, w, h)
 
   playbit.graphics.updateContext()
@@ -141,6 +145,8 @@ function meta:drawScaled(x, y, scale, yscale)
 
   sx = sx * scale
   sy = sy * (yscale or scale)
+
+  playbit.graphics.setDrawMode("image")
 
   love.graphics.draw(self.data, x, y, 0, sx, sy)
 

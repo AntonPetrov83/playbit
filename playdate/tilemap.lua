@@ -60,6 +60,8 @@ function meta:draw(x, y, sourceRect)
   local index = 1
   local sy = y
 
+  playbit.graphics.setDrawMode("image")
+
   for j = 1, self._height do
     local sx = x
     for i = 1, self._width do

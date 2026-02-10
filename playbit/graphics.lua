@@ -32,7 +32,8 @@ module.drawColor = module.colorWhite
 module.backgroundColorIndex = 0
 module.backgroundColor = module.colorBlack
 module.activeFont = {}
-module.drawMode = "copy"
+module.imageDrawMode = 0
+module.drawMode = nil
 module.canvas = love.graphics.newCanvas()
 module.contextStack = {}
 -- shared quad to reduce gc
@@ -126,6 +127,30 @@ function module.setColors(white, black)
   module.colorBlack = black or module.COLOR_BLACK
   module.shaders.final:send("white", white)
   module.shaders.final:send("black", black)
+end
+
+local function getShader(mode)
+  if mode == "line" then
+    return module.shaders.color
+
+  elseif mode == "fill" then
+    if module.drawPattern then
+      return module.shaders.pattern
+    else
+      return module.shaders.color
+    end
+
+  elseif mode == "image" then
+    return module.shaders.image[module.imageDrawMode]
+  end
+end
+
+function module.setDrawMode(mode)
+  if module.drawMode ~= mode then
+    module.drawMode = mode
+    local shader = getShader(mode)
+    love.graphics.setShader(shader)
+  end
 end
 
 function module.updateContext()
