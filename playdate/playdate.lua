@@ -93,7 +93,7 @@ local JUST_RELEASED = 3
 local inputStates = {}
 
 function module.buttonIsPressed(button)
-  local key = module._buttonToKey[button]
+  local key = module._buttonToKey[string.lower(button)]
   if not inputStates[key] then
     -- no entry, assume no input
     return false
@@ -103,7 +103,7 @@ function module.buttonIsPressed(button)
 end
 
 function module.buttonJustPressed(button)
-  local key = module._buttonToKey[button]
+  local key = module._buttonToKey[string.lower(button)]
   if not inputStates[key] then
     -- no entry, assume no input
     return false
@@ -113,7 +113,7 @@ function module.buttonJustPressed(button)
 end
 
 function module.buttonJustReleased(button)
-  local key = module._buttonToKey[button]
+  local key = module._buttonToKey[string.lower(button)]
   if not inputStates[key] then
     -- no entry, assume no input
     return false
@@ -123,7 +123,7 @@ function module.buttonJustReleased(button)
 end
 
 function module.getButtonState(button)
-  local key = module._buttonToKey[button]
+  local key = module._buttonToKey[string.lower(button)]
   local value = inputStates[key]
   return value == PRESSED, value == PRESSED, value == JUST_RELEASED
 end
