@@ -50,10 +50,6 @@ end
 function meta:draw(x, y, sourceRect)
   @@ASSERT(sourceRect == nil, "[ERR] Parameter sourceRect is not yet implemented.")
 
-  -- always render pure white so its not tinted
-  local r, g, b = love.graphics.getColor()
-  love.graphics.setColor(1, 1, 1, 1)
-
   local frameWidth = self._imagetable._frameWidth
   local frameHeight = self._imagetable._frameHeight
 
@@ -63,6 +59,8 @@ function meta:draw(x, y, sourceRect)
   local tiles = self._tiles
   local index = 1
   local sy = y
+
+  playbit.graphics.setDrawMode("image")
 
   for j = 1, self._height do
     local sx = x
@@ -77,7 +75,6 @@ function meta:draw(x, y, sourceRect)
     sy = sy + frameHeight
   end
 
-  love.graphics.setColor(r, g, b, 1)
   playbit.graphics.updateContext()
 end
 
