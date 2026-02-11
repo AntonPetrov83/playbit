@@ -14,27 +14,34 @@ function module.flush()
 end
 
 function module.getHeight()
-  error("[ERR] playdate.display.getHeight() is not yet implemented.")
+  local w, h = module.getSize()
+  return h
 end
 
 function module.getWidth()
-  error("[ERR] playdate.display.getWidth() is not yet implemented.")
+  local w, h = module.getSize()
+  return w
 end
 
 function module.getSize()
-  error("[ERR] playdate.display.getSize() is not yet implemented.")
+  return playbit.graphics.getCanvasSize()
 end
 
 function module.getRect()
-  error("[ERR] playdate.display.getRect() is not yet implemented.")
+  local w, h = playbit.graphics.getCanvasSize()
+  return playdate.geometry.rect.new(0, 0, w, h)
 end
 
 function module.setScale(scale)
-  error("[ERR] playdate.display.setScale() is not yet implemented.")
+  assert(scale == 1 or scale == 2 or scale == 4 or scale == 8)
+  playbit.graphics.setCanvasScale(scale)
+  playbit.graphics.setCanvasSize(
+    math.floor(playbit.graphics.SCR_WIDTH / scale),
+    math.floor(playbit.graphics.SCR_HEIGHT / scale))
 end
 
 function module.getScale()
-  error("[ERR] playdate.display.getScale() is not yet implemented.")
+    return displayScale
 end
 
 function module.setInverted(flag)
@@ -54,11 +61,11 @@ function module.getMosaic()
 end
 
 function module.setOffset(x, y)
-  error("[ERR] playdate.display.setOffset() is not yet implemented.")
+  playbit.graphics.setCanvasPosition(x, y)
 end
 
 function module.getOffset()
-  error("[ERR] playdate.display.getOffset() is not yet implemented.")
+  return playbit.graphics.getCanvasPosition()
 end
 
 function module.setFlipped(x, y)
