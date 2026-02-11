@@ -9,6 +9,7 @@ require("playdate.datastore")
 require("playdate.accelerometer")
 require("playdate.json")
 require("playdate.geometry")
+require("playdate.display")
 
 -- ████████╗██╗███╗   ███╗███████╗
 -- ╚══██╔══╝██║████╗ ████║██╔════╝
