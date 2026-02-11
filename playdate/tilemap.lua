@@ -74,8 +74,6 @@ function meta:draw(x, y, sourceRect)
     end
     sy = sy + frameHeight
   end
-
-  playbit.graphics.updateContext()
 end
 
 function meta:getTiles()

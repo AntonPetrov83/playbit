@@ -131,7 +131,6 @@ function module.clear(color)
     love.graphics.clear(c[1], c[2], c[3], c[4])
     playbit.graphics.lastClearColor = c
   end
-  playbit.graphics.updateContext()
 end
 
 -- "copy", "inverted", "XOR", "NXOR", "whiteTransparent", "blackTransparent", "fillWhite", or "fillBlack".
@@ -158,7 +157,6 @@ function module.drawCircleAtPoint(x, y, radius)
   end
 
   love.graphics.circle("line", x, y, radius)
-  playbit.graphics.updateContext()
 end
 
 function module.fillCircleAtPoint(x, y, radius)
@@ -171,7 +169,6 @@ function module.fillCircleAtPoint(x, y, radius)
   end
 
   love.graphics.circle("fill", x, y, radius)
-  playbit.graphics.updateContext()
 end
 
 function module.drawEllipseInRect(x, y, width, height, startAngle, endAngle)
@@ -205,11 +202,12 @@ end
 function module.setLineWidth(width)
   -- PD examples use line width 0 but love2d does not support it.
   if width < 1 then width = 1 end
+  playbit.graphics.lineWidth = width
   love.graphics.setLineWidth(width)
 end
 
 function module.getLineWidth()
-  return love.graphics.getLineWidth()
+  return playbit.graphics.lineWidth
 end
 
 function module.setLineCapStyle(style)
@@ -225,7 +223,6 @@ function module.drawRect(x, y, width, height)
   end
 
   love.graphics.rectangle("line", x, y, width, height)
-  playbit.graphics.updateContext()
 end
 
 function module.fillRect(x, y, width, height)
@@ -237,7 +234,6 @@ function module.fillRect(x, y, width, height)
   end
 
   love.graphics.rectangle("fill", x, y, width, height)
-  playbit.graphics.updateContext()
 end
 
 function module.drawRoundRect(x, y, width, height, radius)
@@ -245,7 +241,6 @@ function module.drawRoundRect(x, y, width, height, radius)
   -- playbit.graphics.setDrawMode("line")
 
   -- love.graphics.rectangle("line", x, y, width, height, radius, radius, 0)
-  -- playbit.graphics.updateContext()
   error("[ERR] playdate.graphics.drawRoundRect() is not yet implemented.")
 end
 
@@ -254,7 +249,6 @@ function module.fillRoundRect(x, y, width, height, radius)
   --   playbit.graphics.setDrawMode("fill")
 
   -- love.graphics.rectangle("fill", x, y, width, height, radius, radius, 0)
-  -- playbit.graphics.updateContext()
   error("[ERR] playdate.graphics.fillRoundRect() is not yet implemented.")
 end
 
@@ -267,7 +261,6 @@ function module.drawLine(x1, y1, x2, y2)
   end
 
   love.graphics.line(x1, y1, x2, y2)
-  playbit.graphics.updateContext()
 end
 
 function module.drawPolygon(x1, y1, x2, y2, ...)
@@ -283,8 +276,6 @@ function module.drawPolygon(x1, y1, x2, y2, ...)
   else
     love.graphics.polygon("line", x1, y1, x2, y2, ...)
   end
-
-  playbit.graphics.updateContext()
 end
 
 function module.drawArc(x, y, radius, startAngle, endAngle)
@@ -314,15 +305,12 @@ function module.drawArc(x, y, radius, startAngle, endAngle)
   playbit.graphics.setDrawMode("line")
 
   love.graphics.arc("line", "open", x, y, radius, math.rad(startAngle), math.rad(endAngle), 32)
-
-  playbit.graphics.updateContext()
 end
 
 function module.drawPixel(x, y)
   playbit.graphics.setDrawMode("line")
 
   love.graphics.points(x, y)
-  playbit.graphics.updateContext()
 end
 
 function module.perlin(x, y, z, rep, octaves, persistence)
@@ -461,7 +449,6 @@ function module.drawText(text, x, y, width, height, fontFamily, leadingAdjustmen
   @@ASSERT(text ~= nil, "Text is nil")
   local font = playbit.graphics.activeFont
   font:drawText(text, x, y, fontFamily, leadingAdjustment)
-  playbit.graphics.updateContext()
 end
 
 -- TODO: handle the overloaded signature (key, rect, language, leadingAdjustment)
@@ -499,31 +486,53 @@ function module.checkAlphaCollision(image1, x1, y1, flip1, image2, x2, y2, flip2
 end
 
 function module.pushContext(image)
-  -- TODO: PD docs say image is optional, but not passing an image just results in drawing to last context?
-  @@ASSERT(image, "Missing image parameter.")
-
-  -- create canvas if it doesn't exist
-  if not image._canvas then
-    image._canvas = love.graphics.newCanvas(image:getSize())
-  end
+  local context = {
+    drawOffset = playbit.graphics.drawOffset,
+    drawColorIndex = playbit.graphics.drawColorIndex,
+    drawColor = playbit.graphics.drawColor,
+    backgroundColorIndex = playbit.graphics.backgroundColorIndex,
+    backgroundColor = playbit.graphics.backgroundColor,
+    activeFont = playbit.graphics.activeFont,
+    imageDrawMode = playbit.graphics.imageDrawMode,
+    drawMode = playbit.graphics.drawMode,
+    canvas = playbit.graphics.canvas,
+    drawPattern = playbit.graphics.drawPattern,
+    lineWidth = playbit.graphics.lineWidth
+  }
 
   -- push context
-  table.insert(playbit.graphics.contextStack, image)
+  table.insert(playbit.graphics.contextStack, context)
 
-  -- update current render target
-  love.graphics.setCanvas(image._canvas)
+  if image then
+    -- create canvas if it doesn't exist
+    if not image._canvas then
+      image._canvas = love.graphics.newCanvas(image:getSize())
+    end
+
+    -- update current render target
+    module.canvas = image._canvas
+    love.graphics.setCanvas(image._canvas)
+  end
 end
 
 function module.popContext()
   @@ASSERT(#playbit.graphics.contextStack > 0, "No pushed context.")
 
   -- pop context
-  table.remove(playbit.graphics.contextStack)
-  -- update current render target
-  if #playbit.graphics.contextStack == 0 then
-    love.graphics.setCanvas(playbit.graphics.canvas)
-  else
-    local activeContext = playbit.graphics.contextStack[#playbit.graphics.contextStack]
-    love.graphics.setCanvas(activeContext._canvas)
+  local context = table.remove(playbit.graphics.contextStack)
+
+  -- restore canvas
+  playbit.graphics.canvas = context.canvas
+  love.graphics.setCanvas(context.canvas)
+
+  module.setImageDrawMode(context.imageDrawMode)
+  module.setDrawOffset(context.drawOffset.x, context.drawOffset.y)
+  module.setBackgroundColor(context.backgroundColorIndex)
+  module.setColor(context.drawColorIndex)
+  module.setFont(context.activeFont)
+  module.setLineWidth(context.lineWidth)
+
+  if context.drawPattern then
+    module.setPattern(context.drawPattern)
   end
 end
