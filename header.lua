@@ -1,7 +1,7 @@
 !if LOVE2D then
 require("playbit.graphics")
 
---[[ since there is no CoreLibs/playdate, this file should always 
+--[[ since there is no CoreLibs/playdate, this file should always
 be included here so the methods are always available ]]--
 require("playdate.playdate")
 --[[ not really a way around including this one, but probably doesn't really
@@ -19,7 +19,14 @@ function import(path)
 end
 
 local firstFrame = true
-local windowWidth, windowHeight = playbit.graphics.getWindowSize()
+
+-- initialize playbit window using initial love.window mode
+local windowWidth, windowHeight, windowFlags = love.window.getMode()
+playbit.graphics.setWindowSize(windowWidth, windowHeight)
+playbit.graphics.setFullscreen(windowFlags.fullscreen)
+-- scale canvas to fit the window
+local canvasWidth, canvasHeight = playbit.graphics.getCanvasSize()
+playbit.graphics.setCanvasScale(windowWidth / canvasWidth)
 
 playbit.graphics.canvas:setFilter("nearest", "nearest")
 
@@ -68,7 +75,7 @@ function love.draw()
   love.graphics.setCanvas(playbit.graphics.canvas)
   love.graphics.setShader(playbit.graphics.shader)
 
-  --[[ 
+  --[[
     Love2d won't allow a canvas to be set outside of the draw function, so we need to do this on the first frame of draw.
     Otherwise setting the bg color outside of playdate.update() won't be consistent with PD.
   --]]
