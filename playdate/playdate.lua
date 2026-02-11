@@ -457,6 +457,24 @@ function table.indexOfElement(table, element)
   return nil
 end
 
+function table.getsize(table)
+  error("[ERR] table.getsize() is not yet implemented.")
+end
+
+function table.create(arrayCount, hashCount)
+  return { }
+end
+
+function table.shallowcopy(source, destination)
+  destination = destination or {}
+  playbit.util.shallowCopy(destination, source)
+  return destination
+end
+
+function table.deepcopy(source)
+  error("[ERR] table.deepcopy() is not yet implemented.")
+end
+
 function printTable(...)
 	error("[ERR] printTable() is not yet implemented.")
 end
