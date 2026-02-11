@@ -159,6 +159,12 @@ end
 function module.drawCircleAtPoint(x, y, radius)
   playbit.graphics.shader:send("mode", 8)
 
+  if type(x) ~= "number" then
+    local pt = x
+    radius = y
+    x, y = pt.x, pt.y
+  end
+
   love.graphics.circle("line", x, y, radius)
   playbit.graphics.updateContext()
 
@@ -167,6 +173,12 @@ end
 
 function module.fillCircleAtPoint(x, y, radius)
   playbit.graphics.shader:send("mode", 8)
+
+  if type(x) ~= "number" then
+    local pt = x
+    radius = y
+    x, y = pt.x, pt.y
+  end
 
   love.graphics.circle("fill", x, y, radius)
   playbit.graphics.updateContext()
@@ -203,6 +215,8 @@ function module.fillTriangle(x1, y1, x2, y2, x3, y3)
 end
 
 function module.setLineWidth(width)
+  -- PD examples use line width 0 but love2d does not support it.
+  if width < 1 then width = 1 end
   love.graphics.setLineWidth(width)
 end
 
@@ -217,6 +231,11 @@ end
 function module.drawRect(x, y, width, height)
   playbit.graphics.shader:send("mode", 8)
 
+  if type(x) ~= "number" then
+    local r = x
+    x, y, width, height = r:unpack()
+  end
+
   love.graphics.rectangle("line", x, y, width, height)
   playbit.graphics.updateContext()
 
@@ -225,6 +244,11 @@ end
 
 function module.fillRect(x, y, width, height)
   playbit.graphics.shader:send("mode", 8)
+
+  if type(x) ~= "number" then
+    local r = x
+    x, y, width, height = r:unpack()
+  end
 
   love.graphics.rectangle("fill", x, y, width, height)
   playbit.graphics.updateContext()
@@ -257,28 +281,63 @@ end
 function module.drawLine(x1, y1, x2, y2)
   playbit.graphics.shader:send("mode", 8)
 
+  if type(x1) ~= "number" then
+    local ls = x1
+    x1, y1, x2, y2 = ls:unpack()
+  end
+
   love.graphics.line(x1, y1, x2, y2)
   playbit.graphics.updateContext()
 
   module.setImageDrawMode(playbit.graphics.drawMode)
 end
 
-function module.drawArc(x, y, radius, startAngle, endAngle)
+function module.drawPolygon(x1, y1, x2, y2, ...)
   playbit.graphics.shader:send("mode", 8)
+
+  if type(x1) ~= "number" then
+    local poly = x1
+    if poly:isClosed() then
+      love.graphics.polygon("line", unpack(poly._points))
+    else
+      love.graphics.line(unpack(poly._points))
+    end
+  else
+    love.graphics.polygon("line", x1, y1, x2, y2, ...)
+  end
+
+  playbit.graphics.updateContext()
+  module.setImageDrawMode(playbit.graphics.drawMode)
+end
+
+function module.drawArc(x, y, radius, startAngle, endAngle)
+
+  local function normalizeAngle(deg)
+      return (deg % 360 + 360) % 360
+  end
+
+  if type(x) ~= "number" then
+    local arc = x
+    x, y, radius, startAngle, endAngle = arc.x, arc.y, arc.radius, arc.startAngle, arc.endAngle
+  end
+
+  playbit.graphics.shader:send("mode", 8)
+
+  -- Bring angles to interval [0, 360)
+  startAngle = normalizeAngle(startAngle)
+  endAngle = normalizeAngle(endAngle)
+
+  -- PD always draws from startAngle to endAngle clockwise.
+  if startAngle >= endAngle then
+    endAngle = endAngle + 360
+  end
 
   -- 0 degrees is 270 when drawing an arc on PD...
   startAngle = startAngle - 90
   endAngle = endAngle - 90
 
-  if startAngle == endAngle then
-    -- if startAngle and endAngle are the same, PD draws a full circle
-    love.graphics.arc("line", "open", x, y, radius, math.rad(startAngle), math.rad(endAngle + 360), 16)
-  elseif startAngle > endAngle then
-    -- love2d adjusts for when the startAngle is larger, but PD does not, so we need to compensate
-    love.graphics.arc("line", "open", x, y, radius, math.rad(startAngle), math.rad(endAngle + 360), 16)
-  else
-    love.graphics.arc("line", "open", x, y, radius, math.rad(endAngle), math.rad(startAngle), 16)
-  end
+  love.graphics.arc("line", "open", x, y, radius, math.rad(startAngle), math.rad(endAngle), 32)
+
   playbit.graphics.updateContext()
 
   module.setImageDrawMode(playbit.graphics.drawMode)
