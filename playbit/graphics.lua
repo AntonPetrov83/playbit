@@ -3,6 +3,9 @@ playbit = playbit or {}
 local module = {}
 playbit.graphics = module
 
+module.SCR_WIDTH  = 400
+module.SCR_HEIGHT = 240
+
 -- #b0aea7
 module.COLOR_WHITE = { 176 / 255, 174 / 255, 167 / 255, 1 }
 -- #312f28
@@ -43,12 +46,12 @@ module.drawPattern = nil
 module.lineWidth = 1
 
 local canvasScale = 1
-local canvasWidth = 400
-local canvasHeight = 240
+local canvasWidth = module.SCR_WIDTH
+local canvasHeight = module.SCR_HEIGHT
 local canvasX = 0
 local canvasY = 0
-local windowWidth = 400
-local windowHeight = 240
+local windowWidth = module.SCR_WIDTH
+local windowHeight = module.SCR_HEIGHT
 local fullscreen = false
 
 --- Sets the scale of the canvas.

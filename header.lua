@@ -24,9 +24,6 @@ local firstFrame = true
 local windowWidth, windowHeight, windowFlags = love.window.getMode()
 playbit.graphics.setWindowSize(windowWidth, windowHeight)
 playbit.graphics.setFullscreen(windowFlags.fullscreen)
--- scale canvas to fit the window
-local canvasWidth, canvasHeight = playbit.graphics.getCanvasSize()
-playbit.graphics.setCanvasScale(windowWidth / canvasWidth)
 
 playbit.graphics.canvas:setFilter("nearest", "nearest")
 
@@ -121,9 +118,11 @@ function love.draw()
   love.graphics.setShader(playbit.graphics.shaders.final)
 
   -- draw canvas to screen
-  local currentCanvasScale = playbit.graphics.getCanvasScale()
+  local canvasScale = playbit.graphics.getCanvasScale()
+  local canvasWidth, canvasHeight = playbit.graphics.getCanvasSize()
+  local framebufferScale = windowWidth / canvasWidth
   local x, y = playbit.graphics.getCanvasPosition()
-  love.graphics.draw(playbit.graphics.canvas, x, y, 0, currentCanvasScale, currentCanvasScale)
+  love.graphics.draw(playbit.graphics.canvas, x * framebufferScale, y * framebufferScale, 0, framebufferScale, framebufferScale)
 
   -- reset back the shader
   love.graphics.setShader(shader)
