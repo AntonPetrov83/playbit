@@ -13,11 +13,13 @@ require("playdate.geometry")
 
 -- ████████╗██╗███╗   ███╗███████╗
 -- ╚══██╔══╝██║████╗ ████║██╔════╝
---    ██║   ██║██╔████╔██║█████╗  
---    ██║   ██║██║╚██╔╝██║██╔══╝  
+--    ██║   ██║██╔████╔██║█████╗
+--    ██║   ██║██║╚██╔╝██║██╔══╝
 --    ██║   ██║██║ ╚═╝ ██║███████╗
 --    ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝
-                               
+
+local startTime = love.timer.getTime()
+
 function module.getTime()
   local seconds = os.time()
   local date = os.date("*t", seconds)
@@ -34,8 +36,76 @@ function module.getTime()
   }
 end
 
+function module.wait(milliseconds)
+  love.timer.sleep(milliseconds / 1000)
+end
+
+function module.stop()
+  error("[ERR] playdate.stop() is not yet implemented.")
+end
+
+function module.start()
+  error("[ERR] playdate.start() is not yet implemented.")
+end
+
+function module.restart(arg)
+  error("[ERR] playdate.restart() is not yet implemented.")
+end
+
+function module.restart()
+  error("[ERR] playdate.restart() is not yet implemented.")
+end
+
+function module.getSystemMenu()
+  error("[ERR] playdate.getSystemMenu() is not yet implemented.")
+end
+
+function module.setMenuImage(image, xOffset)
+  error("[ERR] playdate.setMenuImage() is not yet implemented.")
+end
+
+function module.getSystemLanguage()
+  error("[ERR] playdate.getSystemLanguage() is not yet implemented.")
+end
+
+function module.getReduceFlashing()
+  error("[ERR] playdate.getReduceFlashing() is not yet implemented.")
+end
+
+function module.getFlipped()
+  error("[ERR] playdate.getFlipped() is not yet implemented.")
+end
+
+function module.startAccelerometer()
+  error("[ERR] playdate.startAccelerometer() is not yet implemented.")
+end
+
+function module.stopAccelerometer()
+  error("[ERR] playdate.stopAccelerometer() is not yet implemented.")
+end
+
+function module.readAccelerometer()
+  error("[ERR] playdate.readAccelerometer() is not yet implemented.")
+end
+
+function module.accelerometerIsRunning()
+  error("[ERR] playdate.accelerometerIsRunning() is not yet implemented.")
+end
+
+function module.setAutoLockDisabled(disable)
+  error("[ERR] playdate.setAutoLockDisabled() is not yet implemented.")
+end
+
 function module.getCurrentTimeMilliseconds()
   return love.timer.getTime() * 1000
+end
+
+function module.resetElapsedTime()
+  startTime = love.timer.getTime()
+end
+
+function module.getElapsedTime()
+  return love.timer.getTime() - startTime
 end
 
 function module.getSecondsSinceEpoch()
@@ -57,13 +127,45 @@ function module.getSecondsSinceEpoch()
   return os.difftime(nowUtc, playdateEpochUtc), milliseconds
 end
 
+function module.getTime()
+  error("[ERR] playdate.getTime() is not yet implemented.")
+end
+
+function module.getGMTTime()
+  error("[ERR] playdate.getGMTTime() is not yet implemented.")
+end
+
+function module.epochFromTime(time)
+  error("[ERR] playdate.epochFromTime() is not yet implemented.")
+end
+
+function module.epochFromGMTTime(time)
+  error("[ERR] playdate.epochFromTime() is not yet implemented.")
+end
+
+function module.timeFromEpoch(seconds, milliseconds)
+  error("[ERR] playdate.timeFromEpoch() is not yet implemented.")
+end
+
+function module.GMTTimeFromEpoch(seconds, milliseconds)
+  error("[ERR] playdate.GMTTimeFromEpoch() is not yet implemented.")
+end
+
+function module.getServerTime(callback)
+  error("[ERR] playdate.getServerTime() is not yet implemented.")
+end
+
+function module.shouldDisplay24HourTime()
+  error("[ERR] playdate.shouldDisplay24HourTime() is not yet implemented.")
+end
+
 -- ██╗███╗   ██╗██████╗ ██╗   ██╗████████╗
 -- ██║████╗  ██║██╔══██╗██║   ██║╚══██╔══╝
--- ██║██╔██╗ ██║██████╔╝██║   ██║   ██║   
--- ██║██║╚██╗██║██╔═══╝ ██║   ██║   ██║   
--- ██║██║ ╚████║██║     ╚██████╔╝   ██║   
--- ╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝    ╚═╝   
-  
+-- ██║██╔██╗ ██║██████╔╝██║   ██║   ██║
+-- ██║██║╚██╗██║██╔═══╝ ██║   ██║   ██║
+-- ██║██║ ╚████║██║     ╚██████╔╝   ██║
+-- ╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝    ╚═╝
+
 local lastActiveJoystick = nil
 local isCrankDocked = false
 local crankPos = 0
@@ -128,6 +230,10 @@ function module.getButtonState(button)
   return value == PRESSED, value == PRESSED, value == JUST_RELEASED
 end
 
+function module.setButtonQueueSize(size)
+  error("[ERR] playdate.setButtonQueueSize() is not yet implemented.")
+end
+
 function module.isCrankDocked()
   if not lastActiveJoystick then
     return isCrankDocked
@@ -149,7 +255,7 @@ end
 function module.getCrankChange()
     local change = playbit.geometry.angleDiff(lastCrankPos, crankPos)
     -- TODO: how does the playdate accelerate this?
-    local acceleratedChange = change 
+    local acceleratedChange = change
     return change, acceleratedChange
 end
 
@@ -173,6 +279,14 @@ function module.getCrankPosition()
     return degrees + 360
   end
   return degrees
+end
+
+function module.getCrankTicks(ticksPerRevolution)
+  error("[ERR] playdate.getCrankTicks() is not yet implemented.")
+end
+
+function module.setCrankSoundsDisabled(disable)
+  error("[ERR] playdate.getCrankTicks() is not yet implemented.")
 end
 
 function love.joystickadded(joystick)
@@ -220,7 +334,7 @@ function love.wheelmoved(x, y)
   -- TODO: emulate PD crank acceleration?
   -- TODO: configure scroll sensitivity?
   crankPos = crankPos + -y * 6
-  
+
   if crankPos < 0 then
     crankPos = 359
   elseif crankPos > 359 then
@@ -373,7 +487,7 @@ function love.keypressed(key)
   end
 end
 
-function love.keyreleased(key)  
+function love.keyreleased(key)
   inputStates["kb_"..key] = JUST_RELEASED
 
   if playbit.keyReleased then
@@ -402,13 +516,25 @@ function module.updateInput()
   lastCrankPos = crankPos
 end
 
--- ██╗     ██╗   ██╗ █████╗ 
+function module.setNewlinePrinted(flag)
+  error("[ERR] playdate.setNewlinePrinted() is not yet implemented.")
+end
+
+function module.getFPS()
+  return love.timer.getFPS()
+end
+
+function module.drawFPS(x, y)
+  -- not implemented yet, but do not produce errors
+end
+
+-- ██╗     ██╗   ██╗ █████╗
 -- ██║     ██║   ██║██╔══██╗
 -- ██║     ██║   ██║███████║
 -- ██║     ██║   ██║██╔══██║
 -- ███████╗╚██████╔╝██║  ██║
 -- ╚══════╝ ╚═════╝ ╚═╝  ╚═╝
-                         
+
 function table.indexOfElement(table, element)
   for i = 1, #table do
     if table[i] == element then
@@ -427,6 +553,14 @@ function sample()
   error("[ERR] sample() is not yet implemented.")
 end
 
+function module.getStats()
+  error("[ERR] playdate.getStats() is not yet implemented.")
+end
+
+function module.setStatsInterval(seconds)
+  error("[ERR] playdate.setStatsInterval() is not yet implemented.")
+end
+
 function where()
   error("[ERR] where() is not yet implemented.")
 end
@@ -434,4 +568,36 @@ end
 function module.apiVersion()
   -- TODO: return Playbit version instead?
   error("[ERR] playdate.apiVersion() is not yet implemented.")
+end
+
+function module.getPowerStatus()
+  error("[ERR] playdate.getPowerStatus() is not yet implemented.")
+end
+
+function module.getBatteryPercentage()
+  error("[ERR] playdate.getBatteryPercentage() is not yet implemented.")
+end
+
+function module.getBatteryVoltage()
+  error("[ERR] playdate.getBatteryVoltage() is not yet implemented.")
+end
+
+function module.clearConsole()
+  error("[ERR] playdate.clearConsole() is not yet implemented.")
+end
+
+function module.setDebugDrawColor(r, g, b, a)
+  error("[ERR] playdate.setDebugDrawColor() is not yet implemented.")
+end
+
+function module.setCollectsGarbage(flag)
+  error("[ERR] playdate.setCollectsGarbage() is not yet implemented.")
+end
+
+function module.setMinimumGCTime(ms)
+  error("[ERR] playdate.setMinimumGCTime() is not yet implemented.")
+end
+
+function module.setGCScaling(min, max)
+  error("[ERR] playdate.setGCScaling() is not yet implemented.")
 end
