@@ -9,6 +9,22 @@ local meta = {}
 meta.__index = meta
 module.__index = meta
 
+local function updateFrame(self)
+  if not self.pause then
+    local elapsedTime = playdate.getCurrentTimeMilliseconds() - self._startTime
+    self.frame = self.startFrame + math.floor(elapsedTime / self.delay) * self.step
+
+    if self.frame > self.endFrame then
+      if self.shouldLoop then
+        self.frame = self.startFrame
+        self._startTime = playdate.getCurrentTimeMilliseconds()
+      else
+        self.frame = self.endFrame
+      end
+    end
+  end
+end
+
 function module.new(delay, imageTable, shouldLoop)
   local animation = setmetatable({}, meta)
   
@@ -31,6 +47,7 @@ function module.new(delay, imageTable, shouldLoop)
 end
 
 function meta:image()
+  updateFrame(self)
   return self._imageTable[self.frame]
 end
 
@@ -51,21 +68,7 @@ function meta:isValid()
 end
 
 function meta:draw(x, y, flip)
-  if not self.pause then
-    local elapsedTime = playdate.getCurrentTimeMilliseconds() - self._startTime
-    self.frame = self.startFrame + math.floor(elapsedTime / self.delay) * self.step
-
-    if self.frame > self.endFrame then
-      if self.shouldLoop then
-        self.frame = self.startFrame
-        self._startTime = playdate.getCurrentTimeMilliseconds()
-      else
-        self.frame = self.endFrame
-      end
-    end
-  end
-
-  local image = self._imageTable[self.frame]
+  local image = self:image()
   image:draw(x, y, flip)
 end
 
