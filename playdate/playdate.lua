@@ -147,10 +147,25 @@ function module.buttonJustReleased(button)
   return inputStates[key] == JUST_RELEASED
 end
 
-function module.getButtonState(button)
-  local key = module._buttonToKey[string.lower(button)]
-  local value = inputStates[key]
-  return value == PRESSED, value == PRESSED, value == JUST_RELEASED
+function module.getButtonState()
+  local current, pressed, released = 0, 0, 0
+
+  for mask, button in pairs(flagToButton) do
+    local key = module._buttonToKey[button]
+    local value = inputStates[key]
+
+    if value == PRESSED then
+      current = current + mask
+
+    elseif value == JUST_PRESSED then
+      pressed = pressed + mask
+
+    elseif value == JUST_RELEASED then
+      released = released + mask
+    end
+  end
+
+  return current, pressed, released
 end
 
 function module.isCrankDocked()
