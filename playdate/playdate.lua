@@ -76,12 +76,21 @@ module._buttonToKey = {
   b = "kb_a",
 }
 
-module.kButtonA = "a"
-module.kButtonB = "b"
-module.kButtonUp = "up"
-module.kButtonDown = "down"
-module.kButtonLeft = "left"
-module.kButtonRight = "right"
+module.kButtonA = 32
+module.kButtonB = 16
+module.kButtonUp = 4
+module.kButtonDown = 8
+module.kButtonLeft = 1
+module.kButtonRight = 2
+
+local flagToButton = {
+  [module.kButtonLeft] = "left",
+  [module.kButtonRight] = "right",
+  [module.kButtonUp] = "up",
+  [module.kButtonDown] = "down",
+  [module.kButtonB] = "b",
+  [module.kButtonA] = "a",
+}
 
 local NONE = 0
 local JUST_PRESSED = 1
@@ -91,7 +100,13 @@ local JUST_RELEASED = 3
 local inputStates = {}
 
 function module.buttonIsPressed(button)
-  local key = module._buttonToKey[string.lower(button)]
+  if type(button) == "number" then
+    button = flagToButton[button]
+  else
+    button = string.lower(button)
+  end
+
+  local key = module._buttonToKey[button]
   if not inputStates[key] then
     -- no entry, assume no input
     return false
@@ -101,7 +116,13 @@ function module.buttonIsPressed(button)
 end
 
 function module.buttonJustPressed(button)
-  local key = module._buttonToKey[string.lower(button)]
+  if type(button) == "number" then
+    button = flagToButton[button]
+  else
+    button = string.lower(button)
+  end
+
+  local key = module._buttonToKey[button]
   if not inputStates[key] then
     -- no entry, assume no input
     return false
@@ -111,7 +132,13 @@ function module.buttonJustPressed(button)
 end
 
 function module.buttonJustReleased(button)
-  local key = module._buttonToKey[string.lower(button)]
+  if type(button) == "number" then
+    button = flagToButton[button]
+  else
+    button = string.lower(button)
+  end
+
+  local key = module._buttonToKey[button]
   if not inputStates[key] then
     -- no entry, assume no input
     return false
