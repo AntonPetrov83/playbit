@@ -24,14 +24,14 @@ function module.new(delay, imageTable, shouldLoop)
   animation.shouldLoop = shouldLoop
 
   if imageTable then
-    animation.endFrame = imageTable:getLength()
+    animation.endFrame = #imageTable
   end
 
   return animation
 end
 
 function meta:image()
-  return self._imageTable:getImage(self.frame)
+  return self._imageTable[self.frame]
 end
 
 function meta:setImageTable(it)
@@ -65,7 +65,8 @@ function meta:draw(x, y, flip)
     end
   end
 
-  self._imageTable:drawImage(self.frame, x, y, flip)
+  local image = self._imageTable[self.frame]
+  image:draw(x, y, flip)
 end
 
 -- docs: https://sdk.play.date/2.6.2/Inside%20Playdate.html#C-graphics.animation.blinker
