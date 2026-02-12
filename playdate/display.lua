@@ -1,6 +1,8 @@
 local module = {}
 playdate.display = module
 
+local inverted = false
+
 function module.setRefreshRate(rate)
   error("[ERR] playdate.display.setRefreshRate() is not yet implemented.")
 end
@@ -45,11 +47,12 @@ function module.getScale()
 end
 
 function module.setInverted(flag)
-  error("[ERR] playdate.display.setInverted() is not yet implemented.")
+  inverted = flag
+  playbit.graphics.shaders.final:send("inverted", flag and 1 or 0)
 end
 
 function module.getInverted()
-  error("[ERR] playdate.display.getInverted() is not yet implemented.")
+  return inverted
 end
 
 function module.setMosaic(x, y)
@@ -69,7 +72,7 @@ function module.getOffset()
 end
 
 function module.setFlipped(x, y)
-  error("[ERR] playdate.display.setFlipped() is not yet implemented.")
+  playbit.graphics.shaders.final:send("flip", { x and 1 or 0, y and 1 or 0 })
 end
 
 function module.loadImage(path)
