@@ -10,6 +10,7 @@ require("playdate.datastore")
 require("playdate.accelerometer")
 require("playdate.json")
 require("playdate.geometry")
+require("playdate.display")
 
 -- ████████╗██╗███╗   ███╗███████╗
 -- ╚══██╔══╝██║████╗ ████║██╔════╝
@@ -647,7 +648,7 @@ function module.clearConsole()
 end
 
 function module.setDebugDrawColor(r, g, b, a)
-  error("[ERR] playdate.setDebugDrawColor() is not yet implemented.")
+  playbit.graphics.debugDrawColor = { r, g, b, a }
 end
 
 function module.setCollectsGarbage(flag)

@@ -3,6 +3,9 @@ playbit = playbit or {}
 local module = {}
 playbit.graphics = module
 
+module.SCR_WIDTH  = 400
+module.SCR_HEIGHT = 240
+
 -- #b0aea7
 module.COLOR_WHITE = { 176 / 255, 174 / 255, 167 / 255, 1 }
 -- #312f28
@@ -41,14 +44,15 @@ module.quad = love.graphics.newQuad(0, 0, 1, 1, 1, 1)
 module.lastClearColor = module.colorWhite
 module.drawPattern = nil
 module.lineWidth = 1
+module.debugDrawColor = { 1, 0, 0, 0.5 }
 
 local canvasScale = 1
-local canvasWidth = 400
-local canvasHeight = 240
+local canvasWidth = module.SCR_WIDTH
+local canvasHeight = module.SCR_HEIGHT
 local canvasX = 0
 local canvasY = 0
-local windowWidth = 400
-local windowHeight = 240
+local windowWidth = module.SCR_WIDTH
+local windowHeight = module.SCR_HEIGHT
 local fullscreen = false
 local fullscreenType = "desktop"
 
@@ -141,8 +145,6 @@ end
 function module.setColors(white, black)
   module.colorWhite = white or module.COLOR_WHITE
   module.colorBlack = black or module.COLOR_BLACK
-  module.shaders.final:send("white", white)
-  module.shaders.final:send("black", black)
 end
 
 local function copyAndSwapCanvases()
