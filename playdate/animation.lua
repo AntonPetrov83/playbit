@@ -20,6 +20,7 @@ local function updateFrame(self)
         self._startTime = playdate.getCurrentTimeMilliseconds()
       else
         self.frame = self.endFrame
+        self._valid = false
       end
     end
   end
@@ -38,6 +39,7 @@ function module.new(delay, imageTable, shouldLoop)
   animation.delay = delay or 100
   animation._imageTable = imageTable
   animation.shouldLoop = shouldLoop
+  animation._valid = true
 
   if imageTable then
     animation.endFrame = #imageTable
@@ -56,15 +58,7 @@ function meta:setImageTable(it)
 end
 
 function meta:isValid()
-  if self.shouldLoop then
-    return true
-  end
-
-  if self.frame > self.endFrame then
-    return false
-  end
-
-  return true
+  return self._valid
 end
 
 function meta:draw(x, y, flip)
