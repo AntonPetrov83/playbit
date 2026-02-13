@@ -14,9 +14,5 @@ vec4 effect(vec4 color, Image tex, vec2 tex_coords, vec2 screen_coords)
 
     float inColor = mix(texColor.r, 1.0 - texColor.r, inverted);
 
-    vec4 outColor;
-    outColor.rgb = mix(black.rgb, white.rgb, inColor);
-    outColor.a   = 1;
-
-    return outColor;
+    return mix(black, white, inColor);
 }

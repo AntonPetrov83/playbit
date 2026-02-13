@@ -38,6 +38,8 @@ math.randomseed(os.time())
 
 playbit.graphics.fallbackFont = playdate.graphics.font.new("fonts/Phozon/Phozon")
 
+local transparentColor = { 0, 0, 0, 0 }
+
 function love.draw()
   -- must be changed at start of frame when canvas is not active
   local newCanvasWidth, newCanvasHeight = playbit.graphics.getCanvasSize()
@@ -92,21 +94,18 @@ function love.draw()
   -- main update
   playdate.update()
 
-  -- debug draw
-  if playdate.debugDraw then
-    playbit.graphics.shader:send("debugDraw", true)
-    playdate.debugDraw()
-    playbit.graphics.shader:send("debugDraw", false)
-  end
-
   -- pop main transform for draw offset
   love.graphics.pop()
 
   -- pop canvas
   love.graphics.setCanvas()
 
-  -- clear shader so that canvas is rendered normally
+  -- store current shader
   local shader = love.graphics.getShader()
+
+  -- setup shader for the final composition
+  playbit.graphics.shaders.final:send("white", playbit.graphics.colorWhite)
+  playbit.graphics.shaders.final:send("black", playbit.graphics.colorBlack)
   love.graphics.setShader(playbit.graphics.shaders.final)
 
   -- draw canvas to screen
@@ -115,6 +114,37 @@ function love.draw()
   local framebufferScale = windowWidth / canvasWidth
   local x, y = playbit.graphics.getCanvasPosition()
   love.graphics.draw(playbit.graphics.canvas, x * framebufferScale, y * framebufferScale, 0, framebufferScale, framebufferScale)
+
+!if DEBUG then
+  -- debug draw
+  if playdate.debugDraw then
+    -- PD sets white color when in the debug mode.
+    playdate.graphics.setColor(1)
+
+    love.graphics.setCanvas(playbit.graphics.canvas)
+    love.graphics.clear(0, 0, 0, 1)
+
+    -- push main transform for draw offset
+    love.graphics.push()
+    love.graphics.translate(playbit.graphics.drawOffset.x, playbit.graphics.drawOffset.y)
+
+    playdate.debugDraw()
+
+    -- pop main transform for draw offset
+    love.graphics.pop()
+
+    -- pop canvas
+    love.graphics.setCanvas()
+
+    -- white pixels are drawn in the debugDrawColor, black pixels are transparent
+    playbit.graphics.shaders.final:send("white", playbit.graphics.debugDrawColor)
+    playbit.graphics.shaders.final:send("black", transparentColor)
+    love.graphics.setShader(playbit.graphics.shaders.final)
+
+    -- draw canvas to screen
+    love.graphics.draw(playbit.graphics.canvas, x * framebufferScale, y * framebufferScale, 0, framebufferScale, framebufferScale)
+  end
+!end
 
   -- reset back the shader
   love.graphics.setShader(shader)

@@ -44,6 +44,7 @@ module.lastClearColor = module.colorWhite
 module.drawPattern = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 module.fallbackFont = nil
 module.lineWidth = 1
+module.debugDrawColor = { 1, 0, 0, 0.5 }
 
 module.textToImageDrawMode = {
   ["copy"] = 0,
@@ -155,8 +156,6 @@ end
 function module.setColors(white, black)
   module.colorWhite = white or module.COLOR_WHITE
   module.colorBlack = black or module.COLOR_BLACK
-  module.shaders.final:send("white", white)
-  module.shaders.final:send("black", black)
 end
 
 local function copyAndSwapCanvases()
