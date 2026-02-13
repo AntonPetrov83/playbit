@@ -44,6 +44,7 @@ module.quad = love.graphics.newQuad(0, 0, 1, 1, 1, 1)
 module.lastClearColor = module.colorWhite
 module.drawPattern = nil
 module.lineWidth = 1
+module.debugDrawColor = { 1, 0, 0, 0.5 }
 
 local canvasScale = 1
 local canvasWidth = module.SCR_WIDTH
@@ -129,8 +130,6 @@ end
 function module.setColors(white, black)
   module.colorWhite = white or module.COLOR_WHITE
   module.colorBlack = black or module.COLOR_BLACK
-  module.shaders.final:send("white", white)
-  module.shaders.final:send("black", black)
 end
 
 local function copyAndSwapCanvases()
