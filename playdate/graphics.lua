@@ -22,6 +22,7 @@ module.kImageFlippedXY = 3
 
 module.kColorWhite = 1
 module.kColorBlack = 0
+module.kColorClear = 2
 -- TODO: clear and XOR support
 
 module.kStrokeCentered = 0
@@ -71,7 +72,7 @@ function module.getDrawOffset()
 end
 
 function module.setBackgroundColor(color)
-  @@ASSERT(color == 1 or color == 0, "Only values of 0 (black) or 1 (white) are supported.")
+  @@ASSERT(color == 1 or color == 0 or color == 2, "Only values of 0 (black), 1 (white) or 2 (clear) are supported.")
   playbit.graphics.backgroundColorIndex = color
   playbit.graphics.backgroundColor = colorByIndex[color]
   -- don't actually set love's bg color here since doing so immediately sets the color, and this is not consistent with PD
