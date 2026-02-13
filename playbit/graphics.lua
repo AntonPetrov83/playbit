@@ -50,6 +50,7 @@ local canvasY = 0
 local windowWidth = 400
 local windowHeight = 240
 local fullscreen = false
+local fullscreenType = "desktop"
 
 --- Sets the scale of the canvas.
 ---@param scale number
@@ -118,6 +119,20 @@ end
 ---@return boolean
 function module.getFullscreen()
   return fullscreen
+end
+
+--- Sets the fullscreen type either "desktop" (default) or "exclusive".
+--- https://love2d.org/wiki/FullscreenType
+---@param type any
+function module.setFullscreenType(type)
+  fullscreenType = type
+end
+
+--- Returns the current fullscreen type.
+--- @param type any
+--- @return string
+function module.getFullscreenType(type)
+  return fullscreenType
 end
 
 --- Sets the colors used when drawing graphics.

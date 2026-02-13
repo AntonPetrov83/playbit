@@ -56,10 +56,11 @@ function love.draw()
   -- must be changed at start of frame - love2d doesn't allow changing window size with canvas active
   local newWindowWidth, newWindowHeight = playbit.graphics.getWindowSize()
   local fullscreen = playbit.graphics.getFullscreen()
+  local fullscreenType = playbit.graphics.getFullscreenType()
   local w, y, flags = love.window.getMode()
   if windowWidth ~= newWindowWidth or windowHeight ~= newWindowHeight or flags.fullscreen ~= fullscreen then
     flags.fullscreen = fullscreen
-
+    flags.fullscreentype = fullscreenType
     -- stop window from ending up off screen when switching back from fullscreen
     if flags.x < 50 then
       flags.x = 50
@@ -68,7 +69,7 @@ function love.draw()
       flags.y = 50
     end
 
-    love.window.setMode(newWindowWidth, newWindowHeight, flags)
+    love.window.updateMode(newWindowWidth, newWindowHeight, flags)
     windowWidth = newWindowWidth
     windowHeight = newWindowHeight
   end
