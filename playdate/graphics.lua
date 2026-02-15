@@ -43,17 +43,6 @@ kTextAlignment = {
 	center = 2,
 }
 
-local textToDrawMode = {
-  ["copy"] = module.kDrawModeCopy,
-  ["inverted"] = module.kDrawModeInverted,
-  ["xor"] = module.kDrawModeXOR,
-  ["nxor"] = module.kDrawModeNXOR,
-  ["whitetransparent"] = module.kDrawModeWhiteTransparent,
-  ["blacktransparent"] = module.kDrawModeBlackTransparent,
-  ["fillwhite"] = module.kDrawModeFillWhite,
-  ["fillblack"] = module.kDrawModeFillBlack
-}
-
 local colorByIndex = {
   [0] = { 0, 0, 0, 1 },
   [1] = { 1, 1, 1, 1 },
@@ -91,7 +80,6 @@ function module.setColor(color)
   playbit.graphics.shaders.color:send("drawColor", c)
   -- color and pattern modes are mutually exclusive
   playbit.graphics.drawPattern = nil
-  playbit.graphics.drawMode = nil
 end
 
 function module.getColor()
@@ -100,7 +88,6 @@ end
 
 function module.setPattern(pattern)
   playbit.graphics.drawPattern = pattern
-  playbit.graphics.drawMode = nil
 
   -- bitshifting does not work in shaders, so do it here in Lua
   local pixels = {}
@@ -138,11 +125,10 @@ end
 -- "copy", "inverted", "XOR", "NXOR", "whiteTransparent", "blackTransparent", "fillWhite", or "fillBlack".
 function module.setImageDrawMode(mode)
   if type(mode) == "string" then
-    mode = textToDrawMode[string.lower(mode)]
+    mode = playbit.graphics.textToImageDrawMode[string.lower(mode)]
   end
 
   playbit.graphics.imageDrawMode = mode
-  playbit.graphics.drawMode = nil
 end
 
 function module.getImageDrawMode()
@@ -510,7 +496,7 @@ function module.pushContext(image)
     drawColorIndex = playbit.graphics.drawColorIndex,
     backgroundColorIndex = playbit.graphics.backgroundColorIndex,
     activeFont = playbit.graphics.activeFont,
-    drawMode = playbit.graphics.drawMode,
+    imageDrawMode = playbit.graphics.imageDrawMode,
     drawPattern = playbit.graphics.drawPattern,
     lineWidth = playbit.graphics.lineWidth
   }
@@ -539,7 +525,7 @@ function module.popContext()
   -- restore render target
   love.graphics.setCanvas(context.canvas)
 
-  module.setImageDrawMode(context.drawMode)
+  module.setImageDrawMode(context.imageDrawMode)
   module.setDrawOffset(context.drawOffset.x, context.drawOffset.y)
   module.setBackgroundColor(context.backgroundColorIndex)
   module.setColor(context.drawColorIndex)
@@ -549,4 +535,6 @@ function module.popContext()
   if context.drawPattern then
     module.setPattern(context.drawPattern)
   end
+
+  playbit.graphics.shader = nil
 end
