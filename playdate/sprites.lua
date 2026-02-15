@@ -37,6 +37,7 @@ function module.new(imageOrTilemap)
   sprite._visible = true
   sprite._updatesEnabled = true
   sprite._collisionsEnabled = true
+  sprite._imageDrawMode = 0
 
   sprite:setCenter(0.5, 0.5)
 
@@ -495,7 +496,11 @@ function meta:getTag()
 end
 
 function meta:setImageDrawMode(mode)
-  error("[ERR] playdate.graphics.sprite.setImageDrawMode() is not yet implemented.")
+  if type(mode) == "string" then
+    mode = playbit.graphics.textToImageDrawMode[string.lower(mode)]
+  end
+
+  self._imageDrawMode = mode
 end
 
 function meta:setImageFlip(flip, flipCollideRect)
@@ -658,7 +663,7 @@ local function drawAll()
       end
 
       if spr._image then
-        playbit.graphics.setDrawMode("image")
+        playbit.graphics.setDrawMode("image", spr._imageDrawMode)
 
         local sx = spr.scaleX or 1
         local sy = spr.scaleY or 1

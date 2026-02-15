@@ -25,7 +25,7 @@ for i = 0, 9 do
   module.shaders.image[i] = love.graphics.newShader(src)
 end
 
-module.shader = love.graphics.newShader("playdate/shader")
+module.shader = nil
 module.drawOffset = { x = 0, y = 0}
 module.drawColorIndex = 1
 module.drawColor = module.colorWhite
@@ -33,7 +33,6 @@ module.backgroundColorIndex = 0
 module.backgroundColor = module.colorBlack
 module.activeFont = {}
 module.imageDrawMode = 0
-module.drawMode = nil
 module.canvas = love.graphics.newCanvas()
 module.contextStack = {}
 -- shared quad to reduce gc
@@ -41,6 +40,17 @@ module.quad = love.graphics.newQuad(0, 0, 1, 1, 1, 1)
 module.lastClearColor = module.colorWhite
 module.drawPattern = nil
 module.lineWidth = 1
+
+module.textToImageDrawMode = {
+  ["copy"] = 0,
+  ["inverted"] = 7,
+  ["xor"] = 5,
+  ["nxor"] = 6,
+  ["whitetransparent"] = 1,
+  ["blacktransparent"] = 2,
+  ["fillwhite"] = 3,
+  ["fillblack"] = 4
+}
 
 local canvasScale = 1
 local canvasWidth = 400
@@ -154,7 +164,7 @@ local function copyAndSwapCanvases()
   love.graphics.setShader(shader)
 end
 
-local function getShader(mode)
+local function getShader(mode, imageDrawMode)
   if mode == "line" then
     return module.shaders.color
 
@@ -166,14 +176,14 @@ local function getShader(mode)
     end
 
   elseif mode == "image" then
-    return module.shaders.image[module.imageDrawMode]
+    return module.shaders.image[imageDrawMode]
   end
 end
 
-function module.setDrawMode(mode)
-  if module.drawMode ~= mode then
-    module.drawMode = mode
-    local shader = getShader(mode)
+function module.setDrawMode(mode, imageDrawMode)
+  local shader = getShader(mode, imageDrawMode or module.imageDrawMode)
+  if module.shader ~= shader then
+    module.shader = shader
     -- TODO: we have to do this before every drawing call.
     if shader:hasUniform("canvas") then
       copyAndSwapCanvases()

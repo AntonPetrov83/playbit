@@ -42,17 +42,6 @@ kTextAlignment = {
 	center = 2,
 }
 
-local textToDrawMode = {
-  ["copy"] = module.kDrawModeCopy,
-  ["inverted"] = module.kDrawModeInverted,
-  ["xor"] = module.kDrawModeXOR,
-  ["nxor"] = module.kDrawModeNXOR,
-  ["whitetransparent"] = module.kDrawModeWhiteTransparent,
-  ["blacktransparent"] = module.kDrawModeBlackTransparent,
-  ["fillwhite"] = module.kDrawModeFillWhite,
-  ["fillblack"] = module.kDrawModeFillBlack
-}
-
 local colorByIndex = {
   [0] = { 0, 0, 0, 1 },
   [1] = { 1, 1, 1, 1 },
@@ -90,7 +79,6 @@ function module.setColor(color)
   playbit.graphics.shaders.color:send("drawColor", c)
   -- color and pattern modes are mutually exclusive
   playbit.graphics.drawPattern = nil
-  playbit.graphics.drawMode = nil
 end
 
 function module.getColor()
@@ -99,7 +87,6 @@ end
 
 function module.setPattern(pattern)
   playbit.graphics.drawPattern = pattern
-  playbit.graphics.drawMode = nil
 
   -- bitshifting does not work in shaders, so do it here in Lua
   local pixels = {}
@@ -137,11 +124,10 @@ end
 -- "copy", "inverted", "XOR", "NXOR", "whiteTransparent", "blackTransparent", "fillWhite", or "fillBlack".
 function module.setImageDrawMode(mode)
   if type(mode) == "string" then
-    mode = textToDrawMode[string.lower(mode)]
+    mode = playbit.graphics.textToImageDrawMode[string.lower(mode)]
   end
 
   playbit.graphics.imageDrawMode = mode
-  playbit.graphics.drawMode = nil
 end
 
 function module.getImageDrawMode()
@@ -495,7 +481,6 @@ function module.pushContext(image)
     backgroundColor = playbit.graphics.backgroundColor,
     activeFont = playbit.graphics.activeFont,
     imageDrawMode = playbit.graphics.imageDrawMode,
-    drawMode = playbit.graphics.drawMode,
     canvas = playbit.graphics.canvas,
     drawPattern = playbit.graphics.drawPattern,
     lineWidth = playbit.graphics.lineWidth
@@ -536,4 +521,6 @@ function module.popContext()
   if context.drawPattern then
     module.setPattern(context.drawPattern)
   end
+
+  playbit.graphics.shader = nil
 end
