@@ -76,7 +76,6 @@ function meta:draw(x, y, sourceRect)
     end
     sy = sy + frameHeight
   end
-
 end
 
 function meta:getTiles()
