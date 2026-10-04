@@ -29,13 +29,11 @@ function meta:setSize(width, height)
   self._tiles = {}
 end
 
-function meta:setTileAtPosition(x, y, index)
-  local i = x*y
-  if #self._tiles == 0 then
-    -- sdk quirk that you cant set a tile unless you've already called setTiles
-    return
+function meta:setTileAtPosition(x, y, tile)
+  if x >= 1 and x <= self._width and y >= 1 and y <= self._height then
+    local index = (y - 1) * self._width + x
+    self._tiles[index] = tile -- index into the tilemap's imagetable
   end
-  self._tiles[i] = index -- index into the tilemap's imagetable
 end
 
 function meta:getTileAtPosition(x, y)
