@@ -19,7 +19,14 @@ function import(path)
 end
 
 local firstFrame = true
-local windowWidth, windowHeight = playbit.graphics.getWindowSize()
+
+-- initialize playbit window using initial love.window mode
+local windowWidth, windowHeight, windowFlags = love.window.getMode()
+playbit.graphics.setWindowSize(windowWidth, windowHeight)
+playbit.graphics.setFullscreen(windowFlags.fullscreen)
+-- scale canvas to fit the window
+local canvasWidth, canvasHeight = playbit.graphics.getCanvasSize()
+playbit.graphics.setCanvasScale(windowWidth / canvasWidth)
 
 playbit.graphics.canvas:setFilter("nearest", "nearest")
 
