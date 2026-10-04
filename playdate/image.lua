@@ -87,7 +87,6 @@ function meta:draw(x, y, flip, qx, qy, qw, qh)
     end
     love.graphics.draw(self.data, x, y, 0, sx, sy)
   end
-
 end
 
 function meta:drawAnchored(x, y, ax, ay, flip)
@@ -124,7 +123,6 @@ function meta:drawRotated(x, y, angle, scale, yscale)
   playbit.graphics.setDrawMode("image")
 
   love.graphics.draw(self.data, x, y, math.rad(angle), sx, sy, w, h)
-
 end
 
 function meta:rotatedImage(angle, scale, yscale)
@@ -143,7 +141,6 @@ function meta:drawScaled(x, y, scale, yscale)
   playbit.graphics.setDrawMode("image")
 
   love.graphics.draw(self.data, x, y, 0, sx, sy)
-
 end
 
 function meta:scaledImage(scale, yscale)
