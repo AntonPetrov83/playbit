@@ -68,6 +68,7 @@ local isCrankDocked = false
 local crankPos = 0
 local lastCrankPos = 0
 
+-- exposed for playbit.input.setKeyMap()
 module._buttonToKey = {
   up = "kb_up",
   down = "kb_down",
@@ -75,6 +76,16 @@ module._buttonToKey = {
   right = "kb_right",
   a = "kb_s",
   b = "kb_a",
+}
+
+local buttonToIntMask = {
+  left = 1,
+  right = 2,
+  up = 4,
+  down = 8,
+  a = 16,
+  b = 32,
+  menu = 64, -- TODO: unused in playbit but works on PD
 }
 
 module.kButtonA = "a"
@@ -88,7 +99,6 @@ local NONE = 0
 local JUST_PRESSED = 1
 local PRESSED = 2
 local JUST_RELEASED = 3
-
 local inputStates = {}
 
 function module.buttonIsPressed(button)
@@ -121,10 +131,22 @@ function module.buttonJustReleased(button)
   return inputStates[key] == JUST_RELEASED
 end
 
-function module.getButtonState(button)
-  local key = module._buttonToKey[button]
-  local value = inputStates[key]
-  return value == PRESSED, value == PRESSED, value == JUST_RELEASED
+function module.getButtonState()
+  local current = 0
+  local justPressed = 0
+  local justReleased = 0
+  for button,key in pairs(module._buttonToKey) do
+    if inputStates[key] == PRESSED or inputStates[key] == JUST_PRESSED then
+      current = current + buttonToIntMask[button]
+    end
+    if inputStates[key] == JUST_RELEASED then
+      justReleased = justReleased + buttonToIntMask[button]
+    end
+    if inputStates[key] == JUST_PRESSED then
+      justPressed = justPressed + buttonToIntMask[button]
+    end
+  end  
+  return current, justPressed, justReleased
 end
 
 function module.isCrankDocked()
@@ -227,6 +249,88 @@ function love.wheelmoved(x, y)
   end
 end
 
+-- playdate itself is the default input handler
+-- https://sdk.play.date/3.0.2/Inside%20Playdate.html#buttonCallbacks
+local inputHandlers = { { handler = playdate } }
+
+module.inputHandlers = { }
+
+function module.inputHandlers.push(handler, masksPreviousHandlers)
+  local entry = { handler = handler, masksPreviousHandlers = masksPreviousHandlers }
+  table.insert(inputHandlers, entry)
+end
+
+function module.inputHandlers.pop()
+  table.remove(inputHandlers)
+end
+
+local inputHandlersEvents = {
+  [JUST_PRESSED] = {
+    up = "upButtonDown",
+    down = "downButtonDown",
+    left = "leftButtonDown",
+    right = "rightButtonDown",
+    a = "AButtonDown",
+    b = "BButtonDown",
+  },
+  [JUST_RELEASED] = {
+    up = "upButtonUp",
+    down = "downButtonUp",
+    left = "leftButtonUp",
+    right = "rightButtonUp",
+    a = "AButtonUp",
+    b = "BButtonUp",
+  },
+  [PRESSED] = {
+    a = "AButtonHeld",
+    b = "BButtonHeld",
+  }
+}
+
+local function postInputHandlersEvent(evt)
+  for i = #inputHandlers, 1, -1 do
+    local entry = inputHandlers[i]
+    local func = entry.handler[evt]
+    if func then
+      func()
+      return
+    elseif entry.masksPreviousHandlers then
+      return
+    end
+  end
+end
+
+local function postInputHandlersCrankedEvent(change, acceleratedChange)
+  for i = #inputHandlers, 1, -1 do
+    local entry = inputHandlers[i]
+    local cranked = entry.handler.cranked
+    if cranked then
+      cranked(change, acceleratedChange)
+    end
+    if entry.masksPreviousHandlers == true then
+      break;
+    end
+  end
+end
+
+local function updateInputHandlers()
+  for k,v in pairs(module._buttonToKey) do
+    local state = inputStates[v]
+    local events = inputHandlersEvents[state]
+    if events then
+      local buttonEvent = events[k]
+      if buttonEvent then
+        postInputHandlersEvent(buttonEvent)
+      end
+    end
+  end
+
+  if lastCrankPos ~= crankPos then
+    local change, acceleratedChange = module.getCrankChange()
+    postInputHandlersCrankedEvent(change, acceleratedChange)
+  end
+end
+
 -- emulate the keys that PD simulator supports
 -- https://sdk.play.date/Inside%20Playdate.html#c-keyPressed
 local supportedCallbackKeys = {
@@ -304,7 +408,10 @@ function love.keyreleased(key)
   end
 end
 
-function module.updateInput()
+function module._updateInput()
+  -- update input handlers before advancing JUST_PRESSED and JUST_RELEASED states
+  updateInputHandlers();
+
   -- only update keys that are mapped
   for k,v in pairs(module._buttonToKey) do
     if inputStates[v] == JUST_PRESSED then
