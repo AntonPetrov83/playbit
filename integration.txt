@@ -16,6 +16,7 @@ feature/graphics-stubs
 feature/playdate-stubs
 bugfix/1-dpi-awareness
 feature/2-love-window-init
+bugfix/tilemap-set-tile-at-position
 dev/debug-draw
 dev/window-800
 dev/fork-readme
