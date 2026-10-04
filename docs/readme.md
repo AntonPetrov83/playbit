@@ -1,3 +1,11 @@
+## This is a live fork of the original Playbit repository.
+
+Personally, I believe that Playbit is a great initiative to make our games portable and accessible to players on platforms other than Playdate. To port my game, I had to make many changes and additions. The most notable issue, for example, is that at the time of writing Playbit does not support sprites at all, and tilemap is in a non-working state. I tried to follow the current Playdate SDK documentation and in some places implemented undocumented behavior that I encountered.
+
+Unfortunately, all the pull requests I have submitted to the Playbit repository have gone unnoticed for long time. Therefore, at the moment of writing this fork represents a more complete implementation of the Playdate SDK.
+
+I am open to accepting fixes and merging them into this fork.
+
 # Playbit
 
 ![Playbit template running](media/playbit-example.gif)
@@ -6,7 +14,7 @@ Playbit is a framework for creating cross-platform [Playdate](https://play.date/
 * A reimplemention of the [Playdate API](https://sdk.play.date/Inside%20Playdate.html) in [Love2D](https://love2d.org/).
 * A build system that utilizes [LuaPreprocess](https://github.com/GamesRightMeow/LuaPreprocess) to strip/inject platform dependent code.
 
-**⚠ IMPORTANT:** This project is in active development and has not reached a stable 1.0 release yet. Use in a production environment at your own risk. 
+**⚠ IMPORTANT:** This project is in active development and has not reached a stable 1.0 release yet. Use in a production environment at your own risk.
 
 ## Why should you use Playbit?
 
