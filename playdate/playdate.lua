@@ -350,3 +350,7 @@ function module.apiVersion()
   -- TODO: return Playbit version instead?
   error("[ERR] playdate.apiVersion() is not yet implemented.")
 end
+
+function module.setDebugDrawColor(r, g, b, a)
+  playbit.graphics.debugDrawColor = { r, g, b, a }
+end

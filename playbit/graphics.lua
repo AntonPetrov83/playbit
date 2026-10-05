@@ -44,6 +44,7 @@ module.lastClearColor = module.colorWhite
 module.drawPattern = nil
 module.fallbackFont = nil
 module.lineWidth = 1
+module.debugDrawColor = { 1, 0, 0, 0.5 }
 
 module.textToImageDrawMode = {
   ["copy"] = 0,
