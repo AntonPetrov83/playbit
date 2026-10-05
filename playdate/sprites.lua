@@ -705,9 +705,7 @@ end
 
 function module.setBackgroundDrawingCallback(callback)
   local backgroundSprite = module.new()
-  -- TODO: temporary hardcoded Playdate screen size until playdate.display.getSize() is implemented.
-  -- The background will not cover the screen if the display size is changed (e.g. playdate.display.setScale()).
-  backgroundSprite:setSize(400, 240)
+  backgroundSprite:setSize(playdate.display.getSize())
   backgroundSprite:setCenter(0, 0)
   backgroundSprite:setZIndex(-32768)
   backgroundSprite:setIgnoresDrawOffset(true)
