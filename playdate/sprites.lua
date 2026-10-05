@@ -496,6 +496,10 @@ function meta:getTag()
 end
 
 function meta:setImageDrawMode(mode)
+  if type(mode) == "string" then
+    mode = playbit.graphics.textToImageDrawMode[string.lower(mode)]
+  end
+
   self._imageDrawMode = mode
 end
 
