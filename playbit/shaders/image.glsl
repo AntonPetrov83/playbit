@@ -1,5 +1,7 @@
 #pragma language glsl3
 
+extern Image canvas;
+
 vec4 effect(vec4 color, Image tex, vec2 tex_coords, vec2 screen_coords)
 {
     vec4  texColor   = Texel(tex, tex_coords);
@@ -21,6 +23,16 @@ vec4 effect(vec4 color, Image tex, vec2 tex_coords, vec2 screen_coords)
 
 #elif DRAW_MODE == 4 // Fill Black
     float outColor   = 0;
+    float outAlpha   = inAlpha;
+
+#elif DRAW_MODE == 5 // XOR
+    vec4 canvasColor = Texel(canvas, screen_coords / love_ScreenSize.xy);
+    float outColor   = abs(canvasColor.r - inColor);
+    float outAlpha   = inAlpha;
+
+#elif DRAW_MODE == 6 // NXOR
+    vec4 canvasColor = Texel(canvas, screen_coords / love_ScreenSize.xy);
+    float outColor   = 1.0 - abs(canvasColor.r - inColor);
     float outAlpha   = inAlpha;
 
 #elif DRAW_MODE == 7 // Inverted
