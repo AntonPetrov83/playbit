@@ -192,10 +192,6 @@ function module.fillEllipseInRect(x, y, width, height, startAngle, endAngle)
   error("[ERR] playdate.graphics.fillEllipseInRect() is not yet implemented.")
 end
 
-function module.drawPolygon(x1, y1, x2, y2, ...)
-  error("[ERR] playdate.graphics.drawPolygon() is not yet implemented.")
-end
-
 function module.fillPolygon(x1, y1, x2, y2, ...)
   error("[ERR] playdate.graphics.fillPolygon() is not yet implemented.")
 end
@@ -300,7 +296,6 @@ function module.drawPolygon(x1, y1, x2, y2, ...)
     love.graphics.polygon("line", x1, y1, x2, y2, ...)
   end
 
-  playbit.graphics.updateContext()
   module.setImageDrawMode(playbit.graphics.drawMode)
 end
 
