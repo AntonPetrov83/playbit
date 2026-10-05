@@ -659,12 +659,7 @@ local function drawAll()
       end
 
       if spr._image then
-        -- always render pure white so its not tinted
-        local r, g, b = love.graphics.getColor()
-        love.graphics.setColor(1, 1, 1, 1)
-
-        local prevDrawMode = playbit.graphics.drawMode
-        playdate.graphics.setImageDrawMode(spr._imageDrawMode)
+        playbit.graphics.setDrawMode("image", spr._imageDrawMode)
 
         local sx = spr.scaleX or 1
         local sy = spr.scaleY or 1
@@ -683,10 +678,6 @@ local function drawAll()
             spr.angle,
             sx, sy,
             spr.width * spr._centerX, spr.height * spr._centerY)
-
-        playdate.graphics.setImageDrawMode(prevDrawMode)
-        love.graphics.setColor(r, g, b, 1)
-        playbit.graphics.updateContext()
 
       elseif spr.draw then
         love.graphics.push()
