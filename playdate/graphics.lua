@@ -35,6 +35,14 @@ module.kLineCapStyleRound = 2
 module.kPolygonFillNonZero = 0
 module.kPolygonFillEvenOdd = 1
 
+module.kAlignLeft = 33554432
+module.kAlignCenter = 33554433
+module.kAlignRight = 33554434
+
+module.kWrapClip = 16777216
+module.kWrapCharacter = 16777217
+module.kWrapWord = 16777218
+
 kTextAlignment = {
 	left = 0,
 	right = 1,
