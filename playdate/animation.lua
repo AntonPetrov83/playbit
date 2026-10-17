@@ -6,11 +6,32 @@ local module = {}
 playdate.graphics.animation.loop = module
 
 local meta = {}
-meta.__index = meta
 module.__index = meta
 
+meta.__index = function(table, key)
+  if key == "paused" then
+    return rawget(table, "_paused")
+  end
+  return meta[key]
+end
+
+-- like on playdate, unpausing carries on at the same frame as when the loop was paused
+meta.__newindex = function(table, key, value)
+  if key == "paused" then
+    local now = playdate.getCurrentTimeMilliseconds()
+    if value and not table._paused then
+      rawset(table, "_pausedAt", now)
+    elseif not value and table._paused then
+      rawset(table, "_startTime", table._startTime + now - table._pausedAt)
+    end
+    rawset(table, "_paused", value)
+  else
+    rawset(table, key, value)
+  end
+end
+
 local function updateFrame(self)
-  if not self.pause then
+  if not self._paused then
     local elapsedTime = playdate.getCurrentTimeMilliseconds() - self._startTime
     self.frame = self.startFrame + math.floor(elapsedTime / self.delay) * self.step
 
@@ -33,7 +54,7 @@ function module.new(delay, imageTable, shouldLoop)
   animation.endFrame = 1
   animation.frame = 1
   animation.step = 1
-  animation.pause = false
+  animation._paused = false
   animation._startTime = playdate.getCurrentTimeMilliseconds()
 
   animation.delay = delay or 100
