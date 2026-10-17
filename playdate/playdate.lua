@@ -68,13 +68,26 @@ local isCrankDocked = false
 local crankPos = 0
 local lastCrankPos = 0
 
+-- by default each button reads a virtual "pd_" input which is pressed by any of its bindings below,
+-- playbit.input.setKeyMap() can still map a button to a single keyboard or gamepad input instead
 module._buttonToKey = {
-  up = "kb_up",
-  down = "kb_down",
-  left = "kb_left",
-  right = "kb_right",
-  a = "kb_s",
-  b = "kb_a",
+  up = "pd_up",
+  down = "pd_down",
+  left = "pd_left",
+  right = "pd_right",
+  a = "pd_a",
+  b = "pd_b",
+}
+
+-- keyboard ("kb_") and gamepad ("js_") inputs work at the same time,
+-- gamepad A and B follow the playdate layout: B is the lower left button and A the upper right one
+module._buttonBindings = {
+  up = { "kb_up", "js_dpup", "js_leftstickup" },
+  down = { "kb_down", "js_dpdown", "js_leftstickdown" },
+  left = { "kb_left", "js_dpleft", "js_leftstickleft" },
+  right = { "kb_right", "js_dpright", "js_leftstickright" },
+  a = { "kb_s", "js_b" },
+  b = { "kb_a", "js_a" },
 }
 
 module.kButtonA = "a"
@@ -90,6 +103,45 @@ local PRESSED = 2
 local JUST_RELEASED = 3
 
 local inputStates = {}
+
+-- physical keyboard and gamepad inputs which are currently held
+local physicalInputsDown = {}
+
+local function updateVirtualButton(button)
+  local held = false
+  for _, input in ipairs(module._buttonBindings[button]) do
+    if physicalInputsDown[input] then
+      held = true
+      break
+    end
+  end
+
+  local key = "pd_"..button
+  local wasHeld = inputStates[key] == JUST_PRESSED or inputStates[key] == PRESSED
+  if held and not wasHeld then
+    inputStates[key] = JUST_PRESSED
+  elseif not held and wasHeld then
+    inputStates[key] = JUST_RELEASED
+  end
+end
+
+local function setPhysicalInput(input, down)
+  if (physicalInputsDown[input] == true) == down then
+    return
+  end
+  physicalInputsDown[input] = down or nil
+
+  -- also kept per physical input for buttons mapped directly with playbit.input.setKeyMap()
+  inputStates[input] = down and JUST_PRESSED or JUST_RELEASED
+
+  for button, inputs in pairs(module._buttonBindings) do
+    for _, bound in ipairs(inputs) do
+      if bound == input then
+        updateVirtualButton(button)
+      end
+    end
+  end
+end
 
 function module.buttonIsPressed(button)
   local key = module._buttonToKey[button]
@@ -127,22 +179,9 @@ function module.getButtonState(button)
   return value == PRESSED, value == PRESSED, value == JUST_RELEASED
 end
 
+-- docked and undocked with the middle mouse button or by clicking the right stick of a gamepad
 function module.isCrankDocked()
-  if not lastActiveJoystick then
-    return isCrankDocked
-  end
-
-  -- TODO: is basing dock state on if stick is non-zero a bad assumption here?
-  -- will other games want a dedicated dock/undock button?
-  local x = math.abs(lastActiveJoystick:getAxis(3))
-  local y = math.abs(lastActiveJoystick:getAxis(4))
-  local len = math.sqrt(x * x + y * y)
-  -- TODO: deadzone sensitivity?
-  if len < 0.1 then
-    return true
-  end
-
-  return false
+  return isCrankDocked
 end
 
 function module.getCrankChange()
@@ -160,18 +199,7 @@ function module.getCrankPosition()
     return 0
   end
 
-  if not lastActiveJoystick then
-    return crankPos
-  end
-
-  local x = lastActiveJoystick:getAxis(3)
-  local y = lastActiveJoystick:getAxis(4)
-
-  local degrees = math.deg(math.atan2(-y, x))
-  if degrees < 0 then
-    return degrees + 360
-  end
-  return degrees
+  return crankPos
 end
 
 function love.joystickadded(joystick)
@@ -189,14 +217,73 @@ function love.joystickremoved(joystick)
   end
 end
 
+local function toggleCrankDocked()
+  isCrankDocked = not isCrankDocked
+  crankPos = 0
+  --[[ also reset lastCrankPos since on PD, you cant
+  dock the crank without rotating it back to 0 --]]
+  lastCrankPos = 0
+end
+
 function love.gamepadpressed(joystick, gamepadButton)
   lastActiveJoystick = joystick
-  inputStates["js_"..gamepadButton] = JUST_PRESSED
+  setPhysicalInput("js_"..gamepadButton, true)
+
+  if gamepadButton == "rightstick" then
+    toggleCrankDocked()
+  end
 end
 
 function love.gamepadreleased(joystick, gamepadButton)
   lastActiveJoystick = joystick
-  inputStates["js_"..gamepadButton] = JUST_RELEASED
+  setPhysicalInput("js_"..gamepadButton, false)
+end
+
+local STICK_PRESS = 0.5
+local STICK_RELEASE = 0.3
+local CRANK_STICK_DEADZONE = 0.5
+local crankStickActive = false
+
+-- a stick direction is pressed past STICK_PRESS and released below STICK_RELEASE to avoid flickering
+local function setStickDirections(negativeInput, positiveInput, value)
+  local negativeThreshold = physicalInputsDown[negativeInput] and STICK_RELEASE or STICK_PRESS
+  local positiveThreshold = physicalInputsDown[positiveInput] and STICK_RELEASE or STICK_PRESS
+  setPhysicalInput(negativeInput, value < -negativeThreshold)
+  setPhysicalInput(positiveInput, value > positiveThreshold)
+end
+
+-- the right stick points the crank, like on playdate 0 is up and the angle grows clockwise
+local function updateCrankFromStick(joystick)
+  local x = joystick:getGamepadAxis("rightx")
+  local y = joystick:getGamepadAxis("righty")
+  if x * x + y * y < CRANK_STICK_DEADZONE * CRANK_STICK_DEADZONE then
+    crankStickActive = false
+    return
+  end
+
+  local degrees = math.deg(math.atan2(x, -y))
+  if degrees < 0 then
+    degrees = degrees + 360
+  end
+
+  crankPos = degrees
+  if not crankStickActive then
+    -- grabbing the stick at some angle should not turn the crank
+    lastCrankPos = degrees
+    crankStickActive = true
+  end
+end
+
+function love.gamepadaxis(joystick, axis, value)
+  lastActiveJoystick = joystick
+
+  if axis == "leftx" then
+    setStickDirections("js_leftstickleft", "js_leftstickright", value)
+  elseif axis == "lefty" then
+    setStickDirections("js_leftstickup", "js_leftstickdown", value)
+  elseif (axis == "rightx" or axis == "righty") and not isCrankDocked then
+    updateCrankFromStick(joystick)
+  end
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
@@ -204,11 +291,7 @@ function love.mousepressed(x, y, button, istouch, presses)
     return
   end
 
-  isCrankDocked = not isCrankDocked
-  crankPos = 0
-  --[[ also reset lastCrankPos since on PD, you cant
-  dock the crank without rotating it back to 0 --]]
-  lastCrankPos = 0
+  toggleCrankDocked()
 end
 
 function love.wheelmoved(x, y)
@@ -276,7 +359,7 @@ local supportedCallbackKeys = {
 }
 
 function love.keypressed(key)
-  inputStates["kb_"..key] = JUST_PRESSED
+  setPhysicalInput("kb_"..key, true)
 
   --[[ Playdate only has a limited range of supported keys, so Playbit exposes the separate
   `playbit.keyPressed` handler so that it can be used to listen to any keypress under love2d. ]]--
@@ -291,7 +374,7 @@ function love.keypressed(key)
 end
 
 function love.keyreleased(key)  
-  inputStates["kb_"..key] = JUST_RELEASED
+  setPhysicalInput("kb_"..key, false)
 
   if playbit.keyReleased then
     playbit.keyReleased(key)
