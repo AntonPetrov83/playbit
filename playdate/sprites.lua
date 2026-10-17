@@ -555,7 +555,7 @@ function meta:isOpaque()
 end
 
 function meta:setVisible(flag)
-  self._visible = flage
+  self._visible = flag
 end
 
 function meta:isVisible()
