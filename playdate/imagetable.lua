@@ -42,7 +42,8 @@ local function resolveImagePath(path)
     local files = love.filesystem.getDirectoryItems(folder)
     for i = 1, #files do
       local f = files[i]
-      if string.find(f, pattern, nil, true) then
+      -- prefix match, otherwise "objects" would also find "map-objects-table-60-60.png"
+      if string.sub(f, 1, #pattern) == pattern then
         local fd, fn, fe = splitPath(f)
         if fe == "png" then
           name = fn
