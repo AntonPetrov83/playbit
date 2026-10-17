@@ -644,6 +644,27 @@ local function updateAll()
   end
 end
 
+-- top left corner of the sprite bounds, which is the origin of the sprite coordinates on playdate
+local function getBoundsOrigin(spr)
+  return spr.x - spr.width * spr._centerX, spr.y - spr.height * spr._centerY
+end
+
+-- the part of the sprite visible on screen, in sprite coordinates
+local function getVisibleRect(spr, originX, originY)
+  local screenX, screenY = 0, 0
+  if not spr._ignoresDrawOffset then
+    local ox, oy = playdate.graphics.getDrawOffset()
+    screenX, screenY = -ox, -oy
+  end
+  local screenWidth, screenHeight = playbit.graphics.getCanvasSize()
+
+  local left = math.max(0, screenX - originX)
+  local top = math.max(0, screenY - originY)
+  local right = math.min(spr.width, screenX + screenWidth - originX)
+  local bottom = math.min(spr.height, screenY + screenHeight - originY)
+  return left, top, right - left, bottom - top
+end
+
 local function drawAll()
   if sort then
     table.sort(allSprites, function(a, b) return a._zIndex < b._zIndex end)
@@ -689,10 +710,15 @@ local function drawAll()
         playbit.graphics.updateContext()
 
       elseif spr.draw then
-        love.graphics.push()
-        love.graphics.translate(spr.x, spr.y)
-        spr:draw(0, 0, spr.width, spr.height)
-        love.graphics.pop()
+        -- like on playdate, draw() gets the rect to update instead of the whole sprite and is skipped when off screen
+        local originX, originY = getBoundsOrigin(spr)
+        local x, y, width, height = getVisibleRect(spr, originX, originY)
+        if width > 0 and height > 0 then
+          love.graphics.push()
+          love.graphics.translate(originX, originY)
+          spr:draw(x, y, width, height)
+          love.graphics.pop()
+        end
       end
 
       if spr._ignoresDrawOffset then
