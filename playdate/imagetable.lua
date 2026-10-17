@@ -54,10 +54,10 @@ local function resolveImagePath(path)
     if not name then return end
   end
 
-  -- parse frame width and height out of filename
-  local matches = string.gmatch(name, "%-(%d+)")
-  local frameWidth = tonumber(matches())
-  local frameHeight = tonumber(matches())
+  -- parse frame width and height out of filename, only after "-table-" since the name itself may contain numbers like "player-1"
+  local frameWidth, frameHeight = string.match(name, "%-table%-(%d+)%-(%d+)")
+  frameWidth = tonumber(frameWidth)
+  frameHeight = tonumber(frameHeight)
 
   return folder .. name .. ".png", frameWidth, frameHeight
 end
