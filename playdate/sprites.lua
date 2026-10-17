@@ -1,3 +1,5 @@
+-- like CoreLibs/sprites on playdate, which imports animator and object
+require("playdate.animator")
 require("playdate.object")
 local bit = require("bit") -- LuaJIT's bitwise operations
 
