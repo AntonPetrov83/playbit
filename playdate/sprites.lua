@@ -19,6 +19,7 @@ module.__index = meta
 
 local allSprites = {}
 local sort = false
+local addCounter = 0
 
 function module.new(imageOrTilemap)
   local sprite = setmetatable({}, meta)
@@ -142,6 +143,8 @@ function meta:add()
   if not self._added then
     table.insert(allSprites, self)
     self._added = true
+    addCounter = addCounter + 1
+    self._addOrder = addCounter
     sort = true
   end
 end
@@ -669,7 +672,13 @@ end
 
 local function drawAll()
   if sort then
-    table.sort(allSprites, function(a, b) return a._zIndex < b._zIndex end)
+    -- table.sort is not stable, so sprites with the same z-index are drawn in the order they were added
+    table.sort(allSprites, function(a, b)
+      if a._zIndex ~= b._zIndex then
+        return a._zIndex < b._zIndex
+      end
+      return a._addOrder < b._addOrder
+    end)
     sort = false
   end
 
