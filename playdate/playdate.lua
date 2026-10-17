@@ -62,7 +62,13 @@ end
 -- ██║██║╚██╗██║██╔═══╝ ██║   ██║   ██║   
 -- ██║██║ ╚████║██║     ╚██████╔╝   ██║   
 -- ╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝    ╚═╝   
-  
+
+-- SDL's built-in mappings are wrong for some gamepads (e.g. axes shifted by one),
+-- a game can ship fixes or the community https://github.com/mdqinc/SDL_GameControllerDB in this file
+if love.filesystem.getInfo("gamecontrollerdb.txt") then
+  love.joystick.loadGamepadMappings("gamecontrollerdb.txt")
+end
+
 local lastActiveJoystick = nil
 local isCrankDocked = false
 local crankPos = 0
