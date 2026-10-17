@@ -67,6 +67,12 @@ function parseLine(line, inputData, lineNum)
     return
   end
 
+  -- newer Caps fonts embed their image, it is not used since the -table- image is loaded instead
+  if string.find(line, "^datalen=") or string.find(line, "^data=")
+    or string.find(line, "^width=") or string.find(line, "^height=") then
+    return
+  end
+
   local start, ends = string.find(line, "tracking=")
   if (start and ends) then
     inputData.tracking = string.sub(line, ends+1)
