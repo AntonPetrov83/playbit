@@ -65,7 +65,9 @@ function module.getFileName(path)
 end
 
 function module.getFileExtension(path)
-  return path:match("^.+%.(.+)$")
+  -- only the last path segment, so dots in folders like ".." are not taken for an extension
+  local name = path:match("[^\\/]*$")
+  return name:match("^.+%.(.+)$")
 end
 
 function module.deleteDirectory(path)
@@ -99,12 +101,35 @@ function module.createFolderIfNeeded(path)
   end 
 end
 
-function module.getRelativePath(path, folder)
-  -- escape dashes do the following gsub doesn't interpret them as the special pattern char
-  folder = string.gsub(folder, "%-", "%%-")
+function module.isAbsolutePath(path)
+  return string.match(path, "^%a:[\\/]") ~= nil or string.match(path, "^[\\/]") ~= nil
+end
 
+-- resolves "." and ".." segments, e.g. "C:\a\b\..\c" -> "C:\a\c"
+function module.normalizePath(path)
+  local slash = getSlash()
+  local prefix = string.match(path, "^%a:") or ""
+  path = string.sub(path, #prefix + 1)
+  if string.match(path, "^[\\/]") then
+    prefix = prefix..slash
+  end
+
+  local parts = {}
+  for part in string.gmatch(path, "[^\\/]+") do
+    if part == ".." then
+      table.remove(parts)
+    elseif part ~= "." then
+      table.insert(parts, part)
+    end
+  end
+  return prefix..table.concat(parts, slash)
+end
+
+function module.getRelativePath(path, folder)
   -- remove folder
-  path = path:gsub(folder, "")
+  if string.sub(path, 1, #folder) == folder then
+    path = string.sub(path, #folder + 1)
+  end
 
   -- trim leading slash
   local char = string.sub(path, 1, 1)

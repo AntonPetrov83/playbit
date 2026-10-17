@@ -193,7 +193,12 @@ function module.processPath(projectFolder, buildFolder, inputPath, outputPath, l
     module.processFile(filePath, outputFilePath, localProcessors, globalProcessors)
   else
     -- process files in folder recursively
-    local fullInputPath = fs.sanitizePath(projectFolder.."/"..inputPath)
+    -- normalized to match the resolved paths returned by fs.getFiles(), also for folders outside of the project
+    local fullInputPath = inputPath
+    if not fs.isAbsolutePath(inputPath) then
+      fullInputPath = projectFolder.."/"..inputPath
+    end
+    fullInputPath = fs.normalizePath(fs.sanitizePath(fullInputPath))
     for i = 1, #files, 1 do
       local filePath = files[i]
       if (filePath == nil) then
