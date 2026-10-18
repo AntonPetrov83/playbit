@@ -336,22 +336,25 @@ function module.clearClipRect()
   error("[ERR] playdate.graphics.clearClipRect() is not yet implemented.")
 end
 
+-- drawing happens only where the stencil image is white
 function module.setStencilImage(image, tile)
-  error("[ERR] playdate.graphics.setStencilImage() is not yet implemented.")
+  playbit.graphics.setStencil(image.data, tile == true)
 end
 
 -- setStencilPattern(pattern)
+-- setStencilPattern(row1, row2, row3, row4, row5, row6, row7, row8)
 -- setStencilPattern(level, [ditherType])
-function module.setStencilPattern(row1, row2, row3, row4, row5, row6, row7, row8)
-  error("[ERR] playdate.graphics.setStencilPattern() is not yet implemented.")
+function module.setStencilPattern(...)
+  local rows = playbit.graphics.getStencilPatternRows(...)
+  playbit.graphics.setStencil(playbit.graphics.getPatternImage(rows), true)
 end
 
 function module.clearStencil()
-  error("[ERR] playdate.graphics.clearStencil() is not yet implemented.")
+  playbit.graphics.setStencil(nil)
 end
 
 function module.clearStencilImage()
-  error("[ERR] playdate.graphics.clearStencilImage() is not yet implemented.")
+  playbit.graphics.setStencil(nil)
 end
 
 function module.setStrokeLocation(location)
@@ -492,7 +495,8 @@ function module.pushContext(image)
     activeFont = playbit.graphics.activeFont,
     imageDrawMode = playbit.graphics.imageDrawMode,
     drawPattern = playbit.graphics.drawPattern,
-    lineWidth = playbit.graphics.lineWidth
+    lineWidth = playbit.graphics.lineWidth,
+    stencil = playbit.graphics.stencil
   }
 
   -- push context
@@ -529,6 +533,9 @@ function module.popContext()
   if context.drawPattern then
     module.setPattern(context.drawPattern)
   end
+
+  local stencil = context.stencil
+  playbit.graphics.setStencil(stencil and stencil.image, stencil and stencil.tiled)
 
   playbit.graphics.shader = nil
 end

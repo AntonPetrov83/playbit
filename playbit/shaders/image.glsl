@@ -4,6 +4,8 @@ extern Image canvas;
 
 vec4 effect(vec4 color, Image tex, vec2 tex_coords, vec2 screen_coords)
 {
+    stencilTest(screen_coords);
+
     vec4  texColor   = Texel(tex, tex_coords);
     float grayscale  = dot(texColor.rgb, vec3(0.2126, 0.7152, 0.0722));
     float inColor    = step(0.5, grayscale);

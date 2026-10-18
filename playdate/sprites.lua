@@ -607,16 +607,21 @@ function module.clearClipRectsInRange(startz, endz)
   error("[ERR] playdate.graphics.sprite.clearClipRectsInRange() is not yet implemented.")
 end
 
+-- the stencil is set before the sprite is drawn, it is attached to the screen and does not move with the sprite
 function meta:setStencilImage(stencil, tile)
-  error("[ERR] playdate.graphics.sprite.setStencilImage() is not yet implemented.")
+  self._stencil = { image = stencil.data, tiled = tile == true }
 end
 
-function meta:setStencilPattern(level, ditherType)
-  error("[ERR] playdate.graphics.sprite.setStencilPattern() is not yet implemented.")
+-- setStencilPattern(pattern)
+-- setStencilPattern(row1, row2, row3, row4, row5, row6, row7, row8)
+-- setStencilPattern(level, [ditherType])
+function meta:setStencilPattern(...)
+  local rows = playbit.graphics.getStencilPatternRows(...)
+  self._stencil = { image = playbit.graphics.getPatternImage(rows), tiled = true }
 end
 
 function meta:clearStencil()
-  error("[ERR] playdate.graphics.sprite.clearStencil() is not yet implemented.")
+  self._stencil = nil
 end
 
 function meta:markDirty()
@@ -657,6 +662,11 @@ local function drawAll()
   for _, spr in ipairs(allSprites) do
     if spr._visible then
 
+      local previousStencil = playbit.graphics.stencil
+      if spr._stencil then
+        playbit.graphics.setStencil(spr._stencil.image, spr._stencil.tiled)
+      end
+
       if spr._ignoresDrawOffset then
         love.graphics.push()
         love.graphics.origin()
@@ -692,6 +702,10 @@ local function drawAll()
 
       if spr._ignoresDrawOffset then
         love.graphics.pop()
+      end
+
+      if spr._stencil then
+        playbit.graphics.setStencil(previousStencil and previousStencil.image, previousStencil and previousStencil.tiled)
       end
 
     end

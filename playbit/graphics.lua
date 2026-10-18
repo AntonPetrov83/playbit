@@ -14,18 +14,28 @@ module.COLOR_BLACK = { 49 / 255, 47 / 255, 40 / 255, 1 }
 module.colorWhite = module.COLOR_WHITE
 module.colorBlack = module.COLOR_BLACK
 
+local stencilShaderCode = love.filesystem.read("playbit/shaders/stencil.glsl")
+
+-- drawing shaders get the stencil code and optional defines right after the "#pragma language" line
+local function newDrawingShader(path, defines)
+  local code = love.filesystem.read(path)
+  local pragma, body = string.match(code, "^(#pragma[^\n]*\n)(.*)$")
+  if not pragma then
+    pragma, body = "", code
+  end
+  return love.graphics.newShader(pragma .. (defines or "") .. stencilShaderCode .. body)
+end
+
 module.shaders =
 {
   final   = love.graphics.newShader("playbit/shaders/final.glsl"),
-  color   = love.graphics.newShader("playbit/shaders/color.glsl"),
-  pattern = love.graphics.newShader("playbit/shaders/pattern.glsl"),
+  color   = newDrawingShader("playbit/shaders/color.glsl"),
+  pattern = newDrawingShader("playbit/shaders/pattern.glsl"),
   image   = { }
 }
 
-local shader = love.filesystem.read("playbit/shaders/image.glsl")
 for i = 0, 9 do
-  local src = "#define DRAW_MODE " .. i .. "\n" .. shader
-  module.shaders.image[i] = love.graphics.newShader(src)
+  module.shaders.image[i] = newDrawingShader("playbit/shaders/image.glsl", "#define DRAW_MODE " .. i .. "\n")
 end
 
 module.shader = nil
@@ -198,8 +208,113 @@ local function getShader(mode, imageDrawMode)
   end
 end
 
+-- current stencil as { image = love image, tiled = boolean } or nil
+module.stencil = nil
+-- incremented on every stencil change, so each shader gets the new uniforms once
+module.stencilVersion = 0
+local shaderStencilVersions = setmetatable({}, { __mode = "k" })
+
+---@param image any love image used as the stencil, nil to clear it
+---@param tiled boolean
+function module.setStencil(image, tiled)
+  if image then
+    module.stencil = { image = image, tiled = tiled }
+  else
+    module.stencil = nil
+  end
+  module.stencilVersion = module.stencilVersion + 1
+end
+
+-- ordered dither matrices, values are thresholds from 0 to size*size-1
+local ditherMatrices = {
+  [5] = { size = 2, 0, 2, 3, 1 },
+  [6] = { size = 4, 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 },
+  [7] = { size = 8,
+     0, 32,  8, 40,  2, 34, 10, 42,
+    48, 16, 56, 24, 50, 18, 58, 26,
+    12, 44,  4, 36, 14, 46,  6, 38,
+    60, 28, 52, 20, 62, 30, 54, 22,
+     3, 35, 11, 43,  1, 33,  9, 41,
+    51, 19, 59, 27, 49, 17, 57, 25,
+    15, 47,  7, 39, 13, 45,  5, 37,
+    63, 31, 55, 23, 61, 29, 53, 21
+  }
+}
+
+-- returns 8 rows of a pattern where a set bit (most significant = leftmost pixel) marks level fraction of pixels
+function module.getDitherPatternRows(level, ditherType)
+  local matrix = ditherMatrices[ditherType or 7]
+  if not matrix then
+    error("[ERR] Dither type "..tostring(ditherType).." is not yet implemented.")
+  end
+
+  local size = matrix.size
+  local threshold = level * size * size
+  local rows = {}
+  for y = 0, 7 do
+    local row = 0
+    for x = 0, 7 do
+      if matrix[(y % size) * size + (x % size) + 1] < threshold then
+        row = row + 2 ^ (7 - x)
+      end
+    end
+    rows[y + 1] = row
+  end
+  return rows
+end
+
+-- rows from the (pattern), (row1, ..., row8) or (level, [ditherType]) forms of the stencil pattern functions
+function module.getStencilPatternRows(...)
+  local first = ...
+  if type(first) == "table" then
+    return first
+  elseif select("#", ...) >= 8 then
+    return { ... }
+  else
+    return module.getDitherPatternRows(...)
+  end
+end
+
+local patternImages = {}
+
+-- 8x8 image of the pattern rows, white where a bit is set, cached since patterns are often animated
+function module.getPatternImage(rows)
+  local key = table.concat(rows, ",", 1, 8)
+  local image = patternImages[key]
+  if not image then
+    local imageData = love.image.newImageData(8, 8)
+    for y = 0, 7 do
+      local row = rows[y + 1]
+      for x = 0, 7 do
+        local c = math.floor(row / 2 ^ (7 - x)) % 2
+        imageData:setPixel(x, y, c, c, c, 1)
+      end
+    end
+    image = love.graphics.newImage(imageData)
+    patternImages[key] = image
+  end
+  return image
+end
+
+local function sendStencil(shader)
+  if shaderStencilVersions[shader] == module.stencilVersion then
+    return
+  end
+  shaderStencilVersions[shader] = module.stencilVersion
+
+  local stencil = module.stencil
+  if stencil then
+    shader:send("stencil", stencil.image)
+    shader:send("stencilSize", { stencil.image:getWidth(), stencil.image:getHeight() })
+    shader:send("stencilMode", stencil.tiled and 2 or 1)
+  else
+    shader:send("stencilMode", 0)
+  end
+end
+
 function module.setDrawMode(mode, imageDrawMode)
   local shader = getShader(mode, imageDrawMode or module.imageDrawMode)
+  sendStencil(shader)
   if module.shader ~= shader then
     module.shader = shader
     -- TODO: we have to do this before every drawing call.
