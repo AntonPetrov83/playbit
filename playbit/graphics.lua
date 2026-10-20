@@ -160,6 +160,22 @@ function module.getFullscreenType(type)
   return fullscreenType
 end
 
+local presenter = nil
+
+--- Sets the function that outputs the finished canvas to the screen, nil restores the default one.
+--- The presenter draws the canvas at x, y scaled by scale. The canvas is 1-bit: red 1 is white, 0 is black,
+--- white and black are the colors set with setColors().
+---@param fn function|nil function(canvas, x, y, scale, white, black)
+function module.setPresenter(fn)
+  presenter = fn
+end
+
+--- Returns the custom presenter, nil if the default one is used.
+---@return function|nil
+function module.getPresenter()
+  return presenter
+end
+
 --- Sets the colors used when drawing graphics.
 ---@param white table An array of 4 values that correspond to RGBA that range from 0 to 1.
 ---@param black table An array of 4 values that correspond to RGBA that range from 0 to 1.

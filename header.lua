@@ -25,6 +25,9 @@ local windowWidth, windowHeight, windowFlags = love.window.getMode()
 playbit.graphics.setWindowSize(windowWidth, windowHeight)
 playbit.graphics.setFullscreen(windowFlags.fullscreen)
 
+-- window position to restore when switching back from fullscreen
+local windowX, windowY, windowDisplay
+
 playbit.graphics.canvas:setFilter("nearest", "nearest")
 
 love.graphics.setDefaultFilter("nearest", "nearest")
@@ -39,6 +42,17 @@ math.randomseed(os.time())
 playbit.graphics.fallbackFont = playdate.graphics.font.new("fonts/Phozon/Phozon")
 
 local transparentColor = { 0, 0, 0, 0 }
+
+-- default presenter: draws the canvas to the screen with the final shader
+local function present(canvas, x, y, scale, white, black)
+  local shader = playbit.graphics.shaders.final
+  shader:send("white", white)
+  shader:send("black", black)
+  shader:send("inverted", playdate.display.getInverted() and 1 or 0)
+  shader:send("flip", playdate.display._flip)
+  love.graphics.setShader(shader)
+  love.graphics.draw(canvas, x, y, 0, scale, scale)
+end
 
 function love.draw()
   -- must be changed at start of frame when canvas is not active
@@ -55,15 +69,20 @@ function love.draw()
   local fullscreenType = playbit.graphics.getFullscreenType()
   local w, y, flags = love.window.getMode()
   if windowWidth ~= newWindowWidth or windowHeight ~= newWindowHeight or flags.fullscreen ~= fullscreen then
+    if fullscreen and not flags.fullscreen then
+      windowX, windowY, windowDisplay = flags.x, flags.y, flags.display
+    elseif not fullscreen and flags.fullscreen then
+      if windowX then
+        flags.x, flags.y, flags.display = windowX, windowY, windowDisplay
+      else
+        -- the window started in fullscreen, so center it
+        local desktopWidth, desktopHeight = love.window.getDesktopDimensions(flags.display)
+        flags.x = math.floor((desktopWidth - newWindowWidth) / 2)
+        flags.y = math.floor((desktopHeight - newWindowHeight) / 2)
+      end
+    end
     flags.fullscreen = fullscreen
     flags.fullscreentype = fullscreenType
-    -- stop window from ending up off screen when switching back from fullscreen
-    if flags.x < 50 then
-      flags.x = 50
-    end
-    if flags.y < 50 then
-      flags.y = 50
-    end
 
     love.window.updateMode(newWindowWidth, newWindowHeight, flags)
     windowWidth = newWindowWidth
@@ -103,17 +122,17 @@ function love.draw()
   -- store current shader
   local shader = love.graphics.getShader()
 
-  -- setup shader for the final composition
-  playbit.graphics.shaders.final:send("white", playbit.graphics.colorWhite)
-  playbit.graphics.shaders.final:send("black", playbit.graphics.colorBlack)
-  love.graphics.setShader(playbit.graphics.shaders.final)
-
   -- draw canvas to screen
   local canvasScale = playbit.graphics.getCanvasScale()
   local canvasWidth, canvasHeight = playbit.graphics.getCanvasSize()
-  local framebufferScale = windowWidth / canvasWidth
+  -- fit into the actual window size, it differs from the requested one in fullscreen
+  local screenWidth, screenHeight = love.graphics.getDimensions()
+  local framebufferScale = math.min(screenWidth / canvasWidth, screenHeight / canvasHeight)
   local x, y = playbit.graphics.getCanvasPosition()
-  love.graphics.draw(playbit.graphics.canvas, x * framebufferScale, y * framebufferScale, 0, framebufferScale, framebufferScale)
+  x = math.floor((screenWidth - canvasWidth * framebufferScale) / 2) + x * framebufferScale
+  y = math.floor((screenHeight - canvasHeight * framebufferScale) / 2) + y * framebufferScale
+  local presenter = playbit.graphics.getPresenter() or present
+  presenter(playbit.graphics.canvas, x, y, framebufferScale, playbit.graphics.colorWhite, playbit.graphics.colorBlack)
 
 !if DEBUG then
   -- debug draw
@@ -137,12 +156,8 @@ function love.draw()
     love.graphics.setCanvas()
 
     -- white pixels are drawn in the debugDrawColor, black pixels are transparent
-    playbit.graphics.shaders.final:send("white", playbit.graphics.debugDrawColor)
-    playbit.graphics.shaders.final:send("black", transparentColor)
-    love.graphics.setShader(playbit.graphics.shaders.final)
-
-    -- draw canvas to screen
-    love.graphics.draw(playbit.graphics.canvas, x * framebufferScale, y * framebufferScale, 0, framebufferScale, framebufferScale)
+    -- always with the default presenter
+    present(playbit.graphics.canvas, x, y, framebufferScale, playbit.graphics.debugDrawColor, transparentColor)
   end
 !end
 

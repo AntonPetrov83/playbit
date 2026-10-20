@@ -2,6 +2,8 @@ local module = {}
 playdate.display = module
 
 local inverted = false
+-- flip as sent to the final shader, applied by playbit every frame
+module._flip = { 0, 0 }
 
 function module.setRefreshRate(rate)
   error("[ERR] playdate.display.setRefreshRate() is not yet implemented.")
@@ -48,7 +50,6 @@ end
 
 function module.setInverted(flag)
   inverted = flag
-  playbit.graphics.shaders.final:send("inverted", flag and 1 or 0)
 end
 
 function module.getInverted()
@@ -72,7 +73,7 @@ function module.getOffset()
 end
 
 function module.setFlipped(x, y)
-  playbit.graphics.shaders.final:send("flip", { x and 1 or 0, y and 1 or 0 })
+  module._flip = { x and 1 or 0, y and 1 or 0 }
 end
 
 function module.loadImage(path)
