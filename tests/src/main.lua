@@ -85,12 +85,32 @@ end
 function playdate.update()
   local suitePaths = playdate.file.listFiles("suites")
   local totalTests = 0
+  local totalTestsRun = 0
   local totalTestsPassed = 0
+  local totalTestsSkipped = 0
   for i=1, #suitePaths do
     local suitePath = suitePaths[i]
     -- strip the extension
     suitePath = string.sub(suitePath, 1, #suitePath - 4)
-    local suite = playdate.file.load("suites/"..suitePath)()
+    local suite, platform = playdate.file.load("suites/"..suitePath)()
+
+    -- count tests
+    for _ in pairs(suite) do totalTests = totalTests + 1 end
+
+    -- skip suites that are platform specific
+    -- TODO: support skipping specific tests
+!if PLAYDATE then
+    if platform and platform == "love2d" then
+      for _ in pairs(suite) do totalTestsSkipped = totalTestsSkipped + 1 end
+      goto continue
+    end
+!elseif LOVE2D then
+    if platform and platform == "playdate" then
+      for _ in pairs(suite) do totalTestsSkipped = totalTestsSkipped + 1 end
+      goto continue
+    end
+!end
+
     for testName, testMethod in pairs(suite) do
       cleanup()
       local fullTestName = suitePath.."_"..testName
@@ -102,8 +122,9 @@ function playdate.update()
       else
         logMessage("[!] "..fullTestName.." > "..message)
       end
-      totalTests = totalTests + 1
+      totalTestsRun = totalTestsRun + 1
     end
+    ::continue::
   end
   
   local now = playdate.getTime()
@@ -111,9 +132,11 @@ function playdate.update()
 
   logMessage("----------------- TEST SUMMARY -------------------")
   logMessage("Completed at "..timeStr)
-  logMessage(totalTests.." run")
+  logMessage(totalTests.." found")
+  logMessage(totalTestsRun.." run")
+  logMessage(totalTestsSkipped.." skipped")
   logMessage(totalTestsPassed.." passed")
-  logMessage((totalTests - totalTestsPassed).." failed")
+  logMessage((totalTestsRun - totalTestsPassed).." failed")
   logMessage("--------------------------------------------------")
   writeLogs()
 
