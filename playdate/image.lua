@@ -3,6 +3,18 @@
 local module = {}
 playdate.graphics.image = module
 
+module.kDitherTypeNone = 0
+module.kDitherTypeDiagonalLine = 1
+module.kDitherTypeVerticalLine = 2
+module.kDitherTypeHorizontalLine = 3
+module.kDitherTypeScreen = 4
+module.kDitherTypeBayer2x2 = 5
+module.kDitherTypeBayer4x4 = 6
+module.kDitherTypeBayer8x8 = 7
+module.kDitherTypeFloydSteinberg = 8
+module.kDitherTypeBurkes = 9
+module.kDitherTypeAtkinson = 10
+
 local meta = {}
 meta.__index = meta
 module.__index = meta
