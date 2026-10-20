@@ -76,6 +76,12 @@ end
 
 local function cleanup()
   -- reset any state between tests
+!if LOVE2D then
+  -- a failed image assertion leaves the canvas unbound, so the next test would draw to the screen
+  love.graphics.setCanvas(playbit.graphics.canvas)
+!end
+  playdate.graphics.setDrawOffset(0, 0)
+  playdate.graphics.clearStencil()
   playdate.graphics.clear()
   playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
   playdate.graphics.setColor(0)

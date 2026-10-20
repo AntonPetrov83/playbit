@@ -278,4 +278,107 @@ function tests.Pattern_IsCleared()
   pbAssert.IsImageSimilar()
 end
 
+-- there are no expected images for these yet, so the canvas is checked directly on love2d
+!if LOVE2D then
+local function countBlackPixels(x, y, width, height)
+  love.graphics.setCanvas()
+  local data = playbit.graphics.canvas:newImageData()
+  love.graphics.setCanvas(playbit.graphics.canvas)
+
+  local count = 0
+  for py = y, y + height - 1 do
+    for px = x, x + width - 1 do
+      if data:getPixel(px, py) < 0.5 then
+        count = count + 1
+      end
+    end
+  end
+  return count
+end
+
+local function fillStenciledRect()
+  playdate.graphics.clear(playdate.graphics.kColorWhite)
+  playdate.graphics.setColor(playdate.graphics.kColorBlack)
+  playdate.graphics.fillRect(0, 0, 8, 8)
+  playdate.graphics.clearStencil()
+end
+
+function tests.StencilPattern_LevelZero_DrawsNothing()
+  playdate.graphics.setStencilPattern(0)
+  fillStenciledRect()
+  pbAssert.AreEqual(countBlackPixels(0, 0, 8, 8), 0)
+end
+
+function tests.StencilPattern_LevelOne_DrawsEverything()
+  playdate.graphics.setStencilPattern(1)
+  fillStenciledRect()
+  pbAssert.AreEqual(countBlackPixels(0, 0, 8, 8), 64)
+end
+
+function tests.StencilPattern_LevelHalf_DrawsHalfOfPixels()
+  playdate.graphics.setStencilPattern(0.5, playdate.graphics.image.kDitherTypeBayer8x8)
+  fillStenciledRect()
+  pbAssert.AreEqual(countBlackPixels(0, 0, 8, 8), 32)
+end
+
+function tests.StencilPattern_Rows_DrawWhereBitsAreSet()
+  playdate.graphics.setStencilPattern({ 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0 })
+  fillStenciledRect()
+  pbAssert.AreEqual(countBlackPixels(0, 0, 4, 8), 32)
+  pbAssert.AreEqual(countBlackPixels(4, 0, 4, 8), 0)
+end
+
+function tests.StencilImage_DrawsOnlyWhereWhite()
+  local stencil = playdate.graphics.image.new(8, 8)
+  playdate.graphics.pushContext(stencil)
+  playdate.graphics.setColor(playdate.graphics.kColorWhite)
+  playdate.graphics.fillRect(0, 0, 4, 8)
+  playdate.graphics.popContext()
+
+  playdate.graphics.setStencilImage(stencil)
+  fillStenciledRect()
+  pbAssert.AreEqual(countBlackPixels(0, 0, 4, 8), 32)
+  pbAssert.AreEqual(countBlackPixels(4, 0, 4, 8), 0)
+end
+
+function tests.Stencil_IsRestoredByPopContext()
+  playdate.graphics.setStencilPattern(0)
+  playdate.graphics.pushContext()
+  playdate.graphics.clearStencil()
+  playdate.graphics.popContext()
+
+  playdate.graphics.clear(playdate.graphics.kColorWhite)
+  playdate.graphics.setColor(playdate.graphics.kColorBlack)
+  playdate.graphics.fillRect(0, 0, 8, 8)
+  local count = countBlackPixels(0, 0, 8, 8)
+  playdate.graphics.clearStencil()
+  pbAssert.AreEqual(count, 0)
+end
+
+function tests.SpriteStencil_IsUsedOnlyForThatSprite()
+  require("playdate.sprites")
+
+  local image = playdate.graphics.image.new(8, 8)
+  playdate.graphics.pushContext(image)
+  playdate.graphics.setColor(playdate.graphics.kColorBlack)
+  playdate.graphics.fillRect(0, 0, 8, 8)
+  playdate.graphics.popContext()
+
+  local sprite = playdate.graphics.sprite.new(image)
+  sprite:setCenter(0, 0)
+  sprite:moveTo(0, 0)
+  sprite:setUpdatesEnabled(false)
+  sprite:setStencilPattern({ 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0 })
+  sprite:add()
+
+  playdate.graphics.clear(playdate.graphics.kColorWhite)
+  playdate.graphics.sprite.update()
+  sprite:remove()
+
+  pbAssert.AreEqual(countBlackPixels(0, 0, 4, 8), 32)
+  pbAssert.AreEqual(countBlackPixels(4, 0, 4, 8), 0)
+  pbAssert.IsNil(playbit.graphics.stencil)
+end
+!end
+
 return tests

@@ -501,6 +501,10 @@ function meta:getTag()
 end
 
 function meta:setImageDrawMode(mode)
+  if type(mode) == "string" then
+    mode = playbit.graphics.textToImageDrawMode[string.lower(mode)]
+  end
+
   self._imageDrawMode = mode
 end
 
@@ -608,16 +612,21 @@ function module.clearClipRectsInRange(startz, endz)
   error("[ERR] playdate.graphics.sprite.clearClipRectsInRange() is not yet implemented.")
 end
 
+-- the stencil is set before the sprite is drawn, it is attached to the screen and does not move with the sprite
 function meta:setStencilImage(stencil, tile)
-  error("[ERR] playdate.graphics.sprite.setStencilImage() is not yet implemented.")
+  self._stencil = { image = stencil.data, tiled = tile == true }
 end
 
-function meta:setStencilPattern(level, ditherType)
-  error("[ERR] playdate.graphics.sprite.setStencilPattern() is not yet implemented.")
+-- setStencilPattern(pattern)
+-- setStencilPattern(row1, row2, row3, row4, row5, row6, row7, row8)
+-- setStencilPattern(level, [ditherType])
+function meta:setStencilPattern(...)
+  local rows = playbit.graphics.getStencilPatternRows(...)
+  self._stencil = { image = playbit.graphics.getPatternImage(rows), tiled = true }
 end
 
 function meta:clearStencil()
-  error("[ERR] playdate.graphics.sprite.clearStencil() is not yet implemented.")
+  self._stencil = nil
 end
 
 function meta:markDirty()
@@ -685,18 +694,18 @@ local function drawAll()
   for _, spr in ipairs(allSprites) do
     if spr._visible then
 
+      local previousStencil = playbit.graphics.stencil
+      if spr._stencil then
+        playbit.graphics.setStencil(spr._stencil.image, spr._stencil.tiled)
+      end
+
       if spr._ignoresDrawOffset then
         love.graphics.push()
         love.graphics.origin()
       end
 
       if spr._image then
-        -- always render pure white so its not tinted
-        local r, g, b = love.graphics.getColor()
-        love.graphics.setColor(1, 1, 1, 1)
-
-        local prevDrawMode = playbit.graphics.drawMode
-        playdate.graphics.setImageDrawMode(spr._imageDrawMode)
+        playbit.graphics.setDrawMode("image", spr._imageDrawMode)
 
         local sx = spr.scaleX or 1
         local sy = spr.scaleY or 1
@@ -716,10 +725,6 @@ local function drawAll()
             sx, sy,
             spr.width * spr._centerX, spr.height * spr._centerY)
 
-        playdate.graphics.setImageDrawMode(prevDrawMode)
-        love.graphics.setColor(r, g, b, 1)
-        playbit.graphics.updateContext()
-
       elseif spr.draw then
         -- like on playdate, draw() gets the rect to update instead of the whole sprite and is skipped when off screen
         local originX, originY = getBoundsOrigin(spr)
@@ -736,6 +741,10 @@ local function drawAll()
         love.graphics.pop()
       end
 
+      if spr._stencil then
+        playbit.graphics.setStencil(previousStencil and previousStencil.image, previousStencil and previousStencil.tiled)
+      end
+
     end
   end
 end
@@ -747,9 +756,7 @@ end
 
 function module.setBackgroundDrawingCallback(callback)
   local backgroundSprite = module.new()
-  -- TODO: temporary hardcoded Playdate screen size until playdate.display.getSize() is implemented.
-  -- The background will not cover the screen if the display size is changed (e.g. playdate.display.setScale()).
-  backgroundSprite:setSize(400, 240)
+  backgroundSprite:setSize(playdate.display.getSize())
   backgroundSprite:setCenter(0, 0)
   backgroundSprite:setZIndex(-32768)
   backgroundSprite:setIgnoresDrawOffset(true)
